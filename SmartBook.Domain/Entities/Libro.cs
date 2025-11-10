@@ -1,0 +1,40 @@
+﻿using SmartBook.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
+
+namespace SmartBook.Domain.Entities;
+
+public class Libro
+{
+    [Required]
+    public string IdLibro { get; init; }
+
+    [Required]
+    public string Nombre {  get; init; }
+
+    [Required]
+    public string Nivel { get; init; }
+
+    [Required]
+    public TipoLibro TipoLibro { get; init; }
+
+    [Required]
+    public string Editorial { get; init; }
+
+
+    [Required]
+    public string Edicion { get; init; }
+
+    [Required]
+    public int Stock { get; init; }
+
+
+  // libro puede ingresar muchas veces
+  public ICollection<Ingreso> Ingresos { get; init; }
+
+    // un libro puede venderse muchas veces
+    public ICollection<VentaDetalle> VentaDetalles { get; init; }
+
+    // sin libros no hay nada que vender tecnicamente
+
+
+}
