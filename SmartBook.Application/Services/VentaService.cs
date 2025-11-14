@@ -1,4 +1,6 @@
-﻿using SmartBook.Application.Interface;
+﻿using Microsoft.Extensions.Configuration;
+using SmartBook.Aplicacion.Extensions;
+using SmartBook.Application.Interface;
 using SmartBook.Domain.Dtos.Reponses.VentasReponse;
 using SmartBook.Domain.Dtos.Reponses.VentasReponses;
 using SmartBook.Domain.Dtos.Requests.VentasRequest;
@@ -14,10 +16,20 @@ public class VentaService : IVentaService
     private readonly IVentaRepository _ventaRepository;
 
 
-    public VentaReponse? Crear(CrearVentaRequest request)
+    private readonly IConfiguration _configuration;
+    public VentaService(IVentaRepository ventaRepository, IConfiguration configuration)
     {
+        _configuration = configuration;
+        _ventaRepository = ventaRepository;
+
+    }
 
 
+
+
+
+    public VentaReponse? Crear(CrearVentaRequest request)
+    { 
             var venta = new Venta
             {
                 Id = DateTime.Now.Ticks.ToString(),
@@ -26,7 +38,7 @@ public class VentaService : IVentaService
                 ClienteId = request.ClienteId,
                 UsuarioId = request.UsuarioId,
                 LibroId = request.LibroId,
-                Observaciones = request.Observaciones,
+                Observaciones = request.Observaciones.Sanitize().RemoveAccents(),
                  
 
             };

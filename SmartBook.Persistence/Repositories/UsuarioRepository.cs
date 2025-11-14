@@ -9,13 +9,14 @@ using SmartBook.Domain.Enums;
 namespace SmartBook.Persistence.Repositories;
 public class UsuarioRepository
 {
-
+    private readonly IConfiguration _configuration;
 
     private readonly string _connectionString;
 
-    public UsuarioRepository(IConfiguration connectionString)
+    public UsuarioRepository(IConfiguration configuration)
     {
-        _connectionString = connectionString.GetSection("SmarkBook").Value;
+        _configuration = configuration;
+        _connectionString = _configuration.GetConnectionString("smarkbook");
     }
 
 

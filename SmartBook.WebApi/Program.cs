@@ -3,13 +3,10 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 using SmartBook.Domain.Entities;
 using SmartBook.Persistence.Repositories;
 using SmartBook.Persistence.Repositories.Interface;
+using SmartBook.Services;
+using SmartBook.WebApi.Services;
 
-namespace SmartBook.WebApi
-{
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -20,14 +17,27 @@ namespace SmartBook.WebApi
             builder.Services.AddSwaggerGen();
             
 
-            //Conexion
-            var _connectionString = "Server=localhost;Port=3306;Database=SmartBook;User Id=root;Password=admin";
-            builder.Services.AddSingleton(_connectionString);
+
+
+
             //Los repositorios que se contectaran
             builder.Services.AddScoped<IClienteRepository,ClienteRepository>();
+            builder.Services.AddScoped<ClienteService>();
+
             builder.Services.AddScoped<ILibroRepository,LibroRepository>();
+            builder.Services.AddScoped<LibroService>();
+
+
             builder.Services.AddScoped<IVentaRepository, VentaRepository>();
+            builder.Services.AddScoped<VentaService>();
+
             builder.Services.AddScoped<UsuarioRepository>();
+            //Registro mis dependencias en el contenedor de dependencias
+
+
+
+
+
 
             // Email
             builder.Services.Configure<EmailSettings>(
@@ -53,6 +63,4 @@ namespace SmartBook.WebApi
             app.MapControllers();
 
             app.Run();
-        }
-    }
-}
+        

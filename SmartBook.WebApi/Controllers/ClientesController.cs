@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using SmartBook.Application.Interface;
 using SmartBook.Domain.Dtos.Requests.ClienteRequest;
@@ -12,7 +13,13 @@ namespace SmartBook.WebApi.Controllers
     [ApiController]
     public class ClienteController : ControllerBase
     {
-        private readonly IClienteService _clienteService;
+        private readonly ClienteService _clienteService;
+
+        public ClienteController(ClienteService cursoService)
+        {
+            _clienteService = cursoService;
+
+        }
 
         [HttpPost]
         public ActionResult Crear(CrearClienteRequest request)
@@ -62,6 +69,7 @@ namespace SmartBook.WebApi.Controllers
             }
             return Ok(libro);
         }
+
         [HttpGet]
         public ActionResult Consultar([FromQuery] ConsultarClienteFiltradoNombreRequest request)
         {

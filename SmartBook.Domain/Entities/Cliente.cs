@@ -7,7 +7,7 @@ public class Cliente
 {
 
 
-    [Required]
+    
     [Key]  
     public string IdCliente { get; init; }
 

@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.Extensions.Configuration;
 using SmartBook.Aplicacion.Extensions;
 using SmartBook.Application.Interface;
 using SmartBook.Domain.Dtos.Reponses.LibrosReponse;
@@ -7,18 +8,23 @@ using SmartBook.Domain.Dtos.Requests.LibrosRequest;
 using SmartBook.Domain.Entities;
 using SmartBook.Domain.Exceptions;
 using SmartBook.Persistence.Repositories;
+using SmartBook.Persistence.Repositories.Interface;
+using System.Configuration;
 
 namespace SmartBook.WebApi.Services;
 
 public class LibroService : ILibroService
 {
 
-    private readonly LibroRepository _librosRepository;
-
-    public LibroService(LibroRepository libroRepository)
+    private readonly ILibroRepository _librosRepository;
+    private readonly IConfiguration _configuration;
+    public LibroService(ILibroRepository libroRepository, IConfiguration configuration)
     {
+        _configuration = configuration;
         _librosRepository = libroRepository;
+
     }
+ 
     public LibroReponse? Crear(CrearLibroRequest request)
     {
        var librosConElMismoNombre = _librosRepository.ExisteLibro(request.Nombre,request.Nivel,request.TipoLibro,request.Edicion);
@@ -32,7 +38,7 @@ public class LibroService : ILibroService
         var libro = new Libro
         {
             IdLibro = DateTime.Now.Ticks.ToString(),
-            Nombre = request.Nombre.Sanitize().RemoveAccents(),
+            Nombre = request.Nombre.Sanitize().RemoveAccents().Sanitize().RemoveAccents(),
             Nivel = request.Nivel,
             TipoLibro = request.TipoLibro,
             Editorial =request.Editorial,

@@ -6,6 +6,7 @@ namespace SmartBook.Domain.Entities;
 public class Libro
 {
     [Required]
+    [Key]
     public string IdLibro { get; init; }
 
     [Required]

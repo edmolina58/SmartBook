@@ -65,18 +65,18 @@ namespace SmartBook.WebApi.Controllers
             var usuarios = _usuarioService.Consultar(request).ToList();
             return Ok(usuarios);
         }
-
+        /*
         [HttpPut("{id}")]
         public ActionResult Actualizar(string id, ActualizarUsuarioRequest request)
         {
-            var actualizado = _usuarioService.Actualizar(id, request);
+            var actualizado = _usuarioService.Activar(id, request);
 
             if (!actualizado)
             {
                 return NotFound();
             }
             return NoContent();
-        }
+        }*/
 
         [HttpPost("login")]
         public ActionResult Login(LoginRequest request)

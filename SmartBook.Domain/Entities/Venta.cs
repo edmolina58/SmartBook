@@ -4,7 +4,7 @@ namespace SmartBook.Domain.Entities;
 
 public class Venta
 {
-    [Required]
+    
     [Key]
     public string Id { get; init; }
     [Required]

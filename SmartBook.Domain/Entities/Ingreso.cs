@@ -5,6 +5,7 @@ namespace SmartBook.Domain.Entities;
 public class Ingreso
 {
     [Required]
+    [Key]
     public string IdIngresos { get; init; }
     [Required]
     //libroid?

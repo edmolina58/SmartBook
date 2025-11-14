@@ -1,4 +1,5 @@
 ﻿using SmartBook.Domain.Dtos.Reponses.LibrosReponse;
+using SmartBook.Domain.Dtos.Requests.LibroRequest;
 using SmartBook.Domain.Entities;
 using SmartBook.Domain.Enums;
 using System;
@@ -16,6 +17,7 @@ public interface ILibroRepository
     public bool Borrar(string id);
 
     public ConsultarLibroReponse? Consultar(string id);
+    bool Actualizar(string IdLibro, ActualizarLibrosRequest Libro);
 
     public IEnumerable<ConsultarLibroReponse> ConsultarPorCampos(string? nombre, string? nivel, TipoLibro tipoLibro, string? edicion);
 }

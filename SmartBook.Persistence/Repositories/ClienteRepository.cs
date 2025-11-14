@@ -4,16 +4,21 @@ using SmartBook.Domain.Dtos.Reponses.ClienteReponse;
 using SmartBook.Domain.Dtos.Requests.ClienteRequest;
 using SmartBook.Domain.Entities;
 using SmartBook.Persistence.Repositories.Interface;
+using System.Configuration;
 
 namespace SmartBook.Persistence.Repositories;
 public class ClienteRepository : IClienteRepository
 {
+    private readonly IConfiguration _configuration;
+
     private readonly string _connectionString;
 
-    public ClienteRepository(IConfiguration connectionString)
+    public ClienteRepository(IConfiguration configuration)
     {
-        _connectionString = connectionString.GetSection("SmarkBook").Value;
+        _configuration = configuration;
+        _connectionString = _configuration.GetConnectionString("smarkbook");
     }
+
 
 
     private string Sql { get; set; }

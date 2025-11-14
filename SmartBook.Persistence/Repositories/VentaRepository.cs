@@ -10,16 +10,16 @@ using SmartBook.Persistence.Repositories.Interface;
 namespace SmartBook.Persistence.Repositories;
 public class VentaRepository : IVentaRepository
 {
+    private readonly IConfiguration _configuration;
+
     private readonly string _connectionString;
 
-    public VentaRepository(IConfiguration connectionString)
+    public VentaRepository(IConfiguration configuration)
     {
-        _connectionString = connectionString.GetSection("SmarBook").Value;
+        _configuration = configuration;
+        _connectionString = _configuration.GetConnectionString("smarkbook");
     }
     private string Sql { get; set; }
-
-
-
 
 
     public void Crear(Venta venta)
