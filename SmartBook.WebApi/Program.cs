@@ -1,13 +1,16 @@
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using SmartBook.Application.Interface;
 using SmartBook.Domain.Entities;
 using SmartBook.Persistence.Repositories;
 using SmartBook.Persistence.Repositories.Interface;
 using SmartBook.Services;
 using SmartBook.WebApi.Services;
+using System.Text;
 
 
-            var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
 
@@ -25,13 +28,15 @@ using SmartBook.WebApi.Services;
             builder.Services.AddScoped<IClienteService,ClienteService>();
 
             builder.Services.AddScoped<ILibroRepository,LibroRepository>();
-            builder.Services.AddScoped<LibroService>();
+            builder.Services.AddScoped<ILibroService,LibroService>();
+
+            builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
 
             builder.Services.AddScoped<IVentaRepository, VentaRepository>();
-            builder.Services.AddScoped<IVentaService,VentaService>();
+            builder.Services.AddScoped<IVentaService, VentaService>();
 
-            builder.Services.AddScoped<UsuarioRepository>();
             //Registro mis dependencias en el contenedor de dependencias
 
 
@@ -45,7 +50,31 @@ using SmartBook.WebApi.Services;
 
 
 
+            builder.Services.AddSingleton<UsuarioService>();
+            builder.Services.AddAuthentication(config =>
+            {
 
+                config.DefaultAuthenticateScheme= JwtBearerDefaults.AuthenticationScheme;
+                config.DefaultChallengeScheme= JwtBearerDefaults.AuthenticationScheme;
+
+            }).AddJwtBearer(config =>
+            {
+                config.RequireHttpsMetadata = false;
+                config.SaveToken = true;
+                config.TokenValidationParameters = new TokenValidationParameters
+                {
+                ValidateIssuerSigningKey=true,
+                ValidateIssuer=false,
+                ValidateAudience=false,
+                ValidateLifetime=true,
+                ClockSkew=TimeSpan.Zero,
+
+                IssuerSigningKey=new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(
+                        builder.Configuration["Jwt:Key"]!)
+                    )
+                };
+            });
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -56,6 +85,8 @@ using SmartBook.WebApi.Services;
             }
 
             app.UseHttpsRedirection();
+            //autenticacion 
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

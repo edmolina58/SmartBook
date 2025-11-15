@@ -41,8 +41,8 @@ public class LibroService : ILibroService
             Nombre = request.Nombre.Sanitize().RemoveAccents().Sanitize().RemoveAccents(),
             Nivel = request.Nivel,
             TipoLibro = request.TipoLibro,
-            Editorial =request.Editorial,
-            Edicion = request.Edicion,
+            Editorial =request.Editorial.Sanitize().RemoveAccents().Sanitize().RemoveAccents(),
+            Edicion = request.Edicion.Sanitize().RemoveAccents().Sanitize().RemoveAccents(),
             Stock = request.stock,
 
         };
@@ -74,7 +74,7 @@ public class LibroService : ILibroService
     }
 
 
-    public IEnumerable<ConsultarLibroReponse> ConsultarProductosCompletos(ConsultarLibroFiltrados request)
+    public IEnumerable<ConsultarLibroReponse> ConsultarProductosCompletos(ConsultarLibroFiltradosRequest request)
     {
 
         return _librosRepository.ConsultarPorCampos(request.Nombre,request.Nivel,request.TipoLibro,request.Edicion);

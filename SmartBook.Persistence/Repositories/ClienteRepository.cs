@@ -20,7 +20,6 @@ public class ClienteRepository : IClienteRepository
     }
 
 
-
     private string Sql { get; set; }
     public bool ExisteCliente(string identificacion)
     {
@@ -121,14 +120,13 @@ public class ClienteRepository : IClienteRepository
             {
 
 
-                //5 Remplazar valores
                 cmd.Parameters.AddWithValue("@id_cliente", cliente.IdCliente);
                 cmd.Parameters.AddWithValue("@fecha_nacimiento", cliente.FechaNacimiento.ToString(FORMATO_FECHA));
                 cmd.Parameters.AddWithValue("@identificacion", cliente.Identificacion);
                 cmd.Parameters.AddWithValue("@nombrecompleto", cliente.Nombres);
                 cmd.Parameters.AddWithValue("@email", cliente.Email);
                 cmd.Parameters.AddWithValue("@celular", cliente.Celular);
-                //06 Ejecurar
+            
                 if (cmd.ExecuteNonQuery() > 0)
                 {
                 }

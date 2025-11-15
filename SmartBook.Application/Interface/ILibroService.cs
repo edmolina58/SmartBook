@@ -17,7 +17,7 @@ public interface ILibroService
 
     ConsultarLibroReponse Consultar(string id);
      bool Actualizar(string id, ActualizarLibrosRequest request);
-    IEnumerable<ConsultarLibroReponse> ConsultarProductosCompletos(ConsultarLibroFiltrados request);
+    IEnumerable<ConsultarLibroReponse> ConsultarProductosCompletos(ConsultarLibroFiltradosRequest request);
 
 
 

@@ -42,10 +42,10 @@ public class ClienteService : IClienteService
         var cliente = new Cliente
         {
             IdCliente = DateTime.Now.Ticks.ToString(),
-            Identificacion = request.IdentificacionCliente,
+            Identificacion = request.IdentificacionCliente.Sanitize().RemoveAccents(),
             Nombres = request.NombreCliente.Sanitize().RemoveAccents(),
-            Email = request.EmailCliente,
-            Celular = request.Celular,
+            Email = request.EmailCliente.Sanitize(),
+            Celular = request.Celular.Sanitize().RemoveAccents(),
             FechaNacimiento = request.FechaNacimiento
 
         };

@@ -1,4 +1,4 @@
-﻿using SmartBook.Domain.Dtos.Reponses.UsuariosReponse;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +11,6 @@ namespace SmartBook.Domain.Dtos.Reponses.LoginsReponse;
 public record  LoginReponse
 (
     string Token,
-    DateTime Expiracion,
-    UsuarioReponse Usuario   
+    DateTime Expiracion
+        
     );

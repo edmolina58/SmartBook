@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SmartBook.Domain.Dtos.Requests.LibrosRequest;
-public record ConsultarLibroFiltrados
+public record ConsultarLibroFiltradosRequest
 (
     string? Nombre
     , string? Nivel, TipoLibro TipoLibro, string? Edicion

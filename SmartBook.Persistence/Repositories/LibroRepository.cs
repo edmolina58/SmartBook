@@ -5,12 +5,9 @@ using SmartBook.Domain.Dtos.Requests.LibroRequest;
 using SmartBook.Domain.Entities;
 using SmartBook.Domain.Enums;
 using SmartBook.Persistence.Repositories.Interface;
-using System.Configuration;
 namespace SmartBook.Persistence.Repositories;
 public class LibroRepository : ILibroRepository
-
 {
-
     private readonly IConfiguration _configuration;
 
     private readonly string _connectionString;
@@ -125,7 +122,6 @@ public class LibroRepository : ILibroRepository
         using var connection = new MySqlConnection(_connectionString);
         connection.Open();
 
-        // Consulta flexible con filtros opcionales
         var query = @"
         SELECT id_libro, nombre, nivel, stock, tipo, editorial, edicion
         FROM libros

@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using SmartBook.Application.Interface;
+using SmartBook.Domain.Dtos.Requests.LibroRequest;
+using SmartBook.Domain.Dtos.Requests.LibrosRequest;
 using SmartBook.Domain.Dtos.Requests.UsuarioRequest;
 using SmartBook.Domain.Exceptions;
 using SmartBook.WebApi.Services;
@@ -11,15 +14,20 @@ namespace SmartBook.WebApi.Controllers
     [ApiController]
     public class UsuariosController : ControllerBase
     {
-        /*
-        //Recordar que REST es sin estado
-        private readonly UsuarioService _usuarioService;
+
+        private readonly IUsuarioService _usuarioService;
+        public UsuariosController(IUsuarioService usuarioService)
+        {
+            _usuarioService = usuarioService;
+
+        }
 
         [HttpPost]
         public ActionResult Crear(CrearUsuarioRequest request)
         {
             try
             {
+
                 var usuario = _usuarioService.Crear(request);
 
                 if (usuario is null)
@@ -34,80 +42,42 @@ namespace SmartBook.WebApi.Controllers
             }
             catch (Exception exg)
             {
+
                 return StatusCode(StatusCodes.Status500InternalServerError, exg.Message);
             }
         }
 
-        [HttpDelete("{id}")]
-        public ActionResult Borrar(string id)
-        {
-            var borrado = _usuarioService.Borrar(id);
-            if (!borrado)
-            {
-                return NotFound();
-            }
-            return NoContent();
-        }
 
-        [HttpGet("{id}")]
-        public ActionResult Consultar(string id)
+
+
+    
+        [HttpGet]
+        public ActionResult Consultar([FromQuery] ConsultarUsuarioRequest request)
         {
-            var usuario = _usuarioService.Consultar(id);
-            if (usuario is null)
+
+            var usuario = _usuarioService.ConsultarUsuario(request);
+            if (usuario  is null)
             {
                 return NotFound();
             }
+
             return Ok(usuario);
         }
 
-        [HttpGet]
-        public ActionResult ConsultarTodos([FromQuery] ConsultarUsuarioRequest request)
-        {
-            var usuarios = _usuarioService.Consultar(request).ToList();
-            return Ok(usuarios);
-        }
         /*
         [HttpPut("{id}")]
         public ActionResult Actualizar(string id, ActualizarUsuarioRequest request)
         {
-            var actualizado = _usuarioService.Activar(id, request);
+            var usuario = _usuarioService.Actualizar(id, request);
 
-            if (!actualizado)
+            if (!usuario)
             {
+
                 return NotFound();
             }
             return NoContent();
-        }
+        }*/
 
-        [HttpPost("login")]
-        public ActionResult Login(LoginRequest request)
-        {
-            try
-            {
-                // Aquí va tu lógica de login cuando la tengas
-                return Ok();
-            }
-            catch (BusinessRoleException exb)
-            {
-                return Unauthorized(exb.Message);
-            }
-            catch (Exception exg)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, exg.Message);
-            }
-        }
 
-        [HttpPost("{id}/activar")]
-        public ActionResult Activar(string id)
-        {
-            var activado = _usuarioService.Activar(id);
-            if (!activado)
-            {
-                return NotFound();
-            }
-            return Ok(new { message = "Usuario activado correctamente" });
-        }
-    }
-    */
     }
 }

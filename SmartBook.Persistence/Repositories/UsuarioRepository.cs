@@ -1,13 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Generators;
-using SmartBook.Domain.Dtos.Requests.UsuarioRequest;
+using SmartBook.Domain.Dtos.Reponses.UsuariosReponses;
 using SmartBook.Domain.Entities;
 using SmartBook.Domain.Enums;
+using SmartBook.Persistence.Repositories.Interface;
 
 namespace SmartBook.Persistence.Repositories;
-public class UsuarioRepository
+public class UsuarioRepository : IUsuarioRepository
 {
     private readonly IConfiguration _configuration;
 
@@ -19,10 +18,12 @@ public class UsuarioRepository
         _connectionString = _configuration.GetConnectionString("smarkbook");
     }
 
-    /*
+    
     private string Sql { get; set; }
     //valida la creacion del Cliente
-    public bool ValidarCreacionCliente(string nombreCliente)
+    
+    
+    public bool ValidarCreacionUsuario(string identificacion)
     {
 
         using (var conexion = new MySqlConnection(_connectionString))
@@ -30,15 +31,15 @@ public class UsuarioRepository
 
             conexion.Open();
             // revisar y corregir aqui todo esta plano 
-            Sql = @"SELECT COUNT(id) 
-                    FROM Clientes 
-                    WHERE nombre =@nombre  AND estado = 1";
+            Sql = @"SELECT COUNT(*) 
+                    FROM usuarios 
+                    WHERE identificacion =@identificacion";
 
 
             using (var cmd = new MySqlCommand(Sql, conexion))
             {
 
-                cmd.Parameters.AddWithValue("@nombre", nombreCliente);
+                cmd.Parameters.AddWithValue("@identificacion", identificacion);
 
                 return (long)cmd.ExecuteScalar() == 0;
 
@@ -47,6 +48,7 @@ public class UsuarioRepository
 
     }
 
+
     //
     public void Crear(Usuario usuario)
     {
@@ -54,19 +56,16 @@ public class UsuarioRepository
         connection.Open();
 
         var query = @"INSERT INTO usuarios 
-                         (id, identificacion, contraseña, nombres, email, rol, estado, fecha_creacion, fecha_actualizacion) 
+                         (id_usuario, identificacion, password, nombreCompleto, correo, rol) 
                          VALUES (@Id, @Identificacion, @Contraseña, @Nombres, @Email, @Rol, @Estado, @FechaCreacion, @FechaActualizacion)";
 
         using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@Id", usuario.IdUsuario);
+        command.Parameters.AddWithValue("@id_usuario", usuario.IdUsuario);
         command.Parameters.AddWithValue("@Identificacion", usuario.Identificacion);
-        command.Parameters.AddWithValue("@Contraseña", (usuario.Password)); // Encriptar contraseña
-        command.Parameters.AddWithValue("@Nombres", usuario.Nombre);
-        command.Parameters.AddWithValue("@Email", usuario.Email);
-        command.Parameters.AddWithValue("@Rol", usuario.RolUsuario.ToString());
-        command.Parameters.AddWithValue("@Estado", usuario.EstadoUsuario.ToString());
-        command.Parameters.AddWithValue("@FechaCreacion", usuario.FechaCreacion);
-        command.Parameters.AddWithValue("@FechaActualizacion", usuario.FechaActualizacion);
+        command.Parameters.AddWithValue("@password", (usuario.Password)); // Encriptar contraseña
+        command.Parameters.AddWithValue("@nombreCompleto", usuario.NombreCompleto);
+        command.Parameters.AddWithValue("@correo", usuario.Email);
+        command.Parameters.AddWithValue("@rol", usuario.RolUsuario);
 
         command.ExecuteNonQuery();
     }
@@ -76,7 +75,7 @@ public class UsuarioRepository
         using var connection = new MySqlConnection(_connectionString);
         connection.Open();
 
-        var query = "DELETE FROM usuarios WHERE id = @Id";
+        var query = "DELETE FROM usuarios WHERE id_usuario = @Id";
 
         using var command = new MySqlCommand(query, connection);
         command.Parameters.AddWithValue("@Id", id);
@@ -84,40 +83,51 @@ public class UsuarioRepository
         return command.ExecuteNonQuery() > 0;
     }
 
-    public Usuario? Consultar(string id)
+
+
+    public IEnumerable<ConsultarUsuarioReponse> ConsultarPorNombre(string nombreCompleto, RolUsuario? rolUsuario)
     {
-        using var connection = new MySqlConnection(_connectionString);
-        connection.Open();
-
-        var query = "SELECT * FROM usuarios WHERE id = @Id";
-
-        using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@Id", id);
-
-        using var reader = command.ExecuteReader();
-
-        if (reader.Read())
+        using (var conexion = new MySqlConnection(_connectionString))
         {
-            return MapToUsuario(reader);
+            conexion.Open();
+                                /*
+                    id_usuario 
+                    identificacion 
+                    password 
+                    nombreCompleto 
+                    correo 
+                    rol 
+                    */
+
+            Sql = @"SELECT nombreCompleto,rol
+                 FROM usuarios
+                WHERE  nombreCompleto = @nombreCompleto or rol=@rol";
+
+
+            using (var cmd = new MySqlCommand(Sql, conexion))
+            {
+                cmd.Parameters.AddWithValue("@nombreCompleto", nombreCompleto);
+                cmd.Parameters.AddWithValue("@rol", rolUsuario);
+
+                var reader = cmd.ExecuteReader();
+
+                var resultados = new List<ConsultarUsuarioReponse>();
+
+                while (reader.Read())
+                {
+                    var listanombreCompleto = reader["nombreCompleto"].ToString();
+                    var rolUsuarios = (RolUsuario)Convert.ToInt32(reader["rol"].ToString());  
+                    resultados.Add(new ConsultarUsuarioReponse(
+                    listanombreCompleto!,
+                    rolUsuarios
+                    ));
+                }
+
+                return resultados;
+            }
         }
+    }
 
-        return null;
-    }
-    private Usuario MapToUsuario(MySqlDataReader reader)
-    {
-        return new Usuario(
-            reader["identificacion"].ToString(),
-            reader["contraseña"].ToString(), // Contraseña ya encriptada
-            reader["nombres"].ToString(),
-            reader["email"].ToString(),
-            Enum.Parse<RolUsuario>(reader["rol"].ToString())
-        )
-        {
-            IdUsuario = reader["id"].ToString(),
-            EstadoUsuario = Enum.Parse<EstadoUsuario>(reader["estado"].ToString()),
-            FechaCreacion = Convert.ToDateTime(reader["fecha_creacion"]),
-            FechaActualizacion = Convert.ToDateTime(reader["fecha_actualizacion"])
-        };
-    }
-     */
+    
+     
 }

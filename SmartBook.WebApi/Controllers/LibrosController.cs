@@ -67,7 +67,7 @@ public class LibrosController : ControllerBase
         return Ok(libro);
     }
     [HttpGet]
-    public ActionResult Consultar([FromQuery] ConsultarLibroFiltrados request)
+    public ActionResult Consultar([FromQuery] ConsultarLibroFiltradosRequest request)
     {
 
         var libro = _libroService.ConsultarProductosCompletos(request);
