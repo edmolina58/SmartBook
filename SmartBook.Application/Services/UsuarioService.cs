@@ -1,182 +1,60 @@
 ﻿
-using SmartBook.Domain.Dtos.Reponses.LoginsReponse;
-using SmartBook.Domain.Dtos.Reponses.UsuariosReponse;
-using SmartBook.Domain.Dtos.Requests.LoginRequest;
-using SmartBook.Domain.Dtos.Requests.UsuarioRequest;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using SmartBook.Domain.Entities;
-using SmartBook.Domain.Enums;
-using SmartBook.Domain.Exceptions;
 using SmartBook.Persistence.Repositories;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 
 namespace SmartBook.WebApi.Services;
 public class UsuarioService 
 {
     private readonly UsuarioRepository _usuarioRepository;
-
-    public UsuarioService(UsuarioRepository usuarioRepository)
+    private readonly IConfiguration _cofiguration;
+    public UsuarioService(IConfiguration configuration)
     {
-        _usuarioRepository = usuarioRepository;
+
+        _cofiguration = configuration;
+
     }
-    public UsuarioReponse? Crear(CrearUsuarioRequest request)
+    public string encriptarpassword(string texto)
     {
-        // Validar que no exista usuario con mismo email
-
-
-        // Validar que el email sea institucional
-        if (!request.EmailUsuario.EndsWith("@cecar.edu.co"))
+        using(SHA256 sha256 = SHA256.Create())
         {
-            throw new BusinessRoleException("Solo se permiten correos institucionales @cecar.edu.co");
+        byte[] bytes=sha256.ComputeHash(Encoding.UTF8.GetBytes(texto));
+        StringBuilder builder = new StringBuilder();
+        for(int i=0;i<bytes.Length; i++)
+            { 
+            builder.Append(bytes[i].ToString("x2"));
+            
+            }
+        return builder.ToString();
+
         }
 
-        var usuario = new Usuario(
-            request.IdUsuario,
-            request.PasswordUsuario,
-            request.NombreUsuario,
-            request.EmailUsuario,
-            request.RolUsuario
-        );
 
-        _usuarioRepository.Crear(usuario);
-
-        return new UsuarioReponse(
-            usuario.IdUsuario,
-            usuario.Identificacion,
-            usuario.Nombre,
-            usuario.Email,
-            usuario.RolUsuario,
-            usuario.EstadoUsuario,
-            usuario.FechaCreacion,
-            usuario.FechaActualizacion
-        );
     }
 
-    public bool Borrar(string id)
+    public string generarJWT(Usuario modelo)
     {
-        return _usuarioRepository.Borrar(id);
+        var userClaims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier,modelo.IdUsuario.ToString()),
+            new Claim(ClaimTypes.Email, modelo.Email!)
+
+        };
+        var securitykey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_cofiguration["Jwt:Key"]!));
+        var credentials = new SigningCredentials(securitykey, SecurityAlgorithms.HmacSha256Signature);
+
+        var jwtConfig = new JwtSecurityToken(
+            claims:userClaims,
+            expires: DateTime.UtcNow.AddMinutes(59),
+            signingCredentials: credentials
+            );
+        return new JwtSecurityTokenHandler().WriteToken(jwtConfig);
     }
-
-    public UsuarioReponse Consultar(string id)
-    {
-        var usuario = _usuarioRepository.Consultar(id);
-
-        if (usuario is null)
-        {
-            throw new BusinessRoleException("Usuario no encontrado");
-        }
-
-        return new UsuarioReponse(
-            usuario.IdUsuario,
-            usuario.Identificacion,
-            usuario.Nombre,
-            usuario.Email,
-            usuario.RolUsuario,
-            usuario.EstadoUsuario,
-            usuario.FechaCreacion,
-            usuario.FechaActualizacion
-        );
-    }
-    /*
-    public bool Actualizar(string id, ActualizarUsuarioRequest request)
-    {
-        var usuario = _usuarioRepository.Consultar(id);
-
-        if (usuario is null)
-        {
-            return false;
-        }
-
-        // Validar email institucional si se cambia
-        if (!request.EmailUsuario.EndsWith("@cecar.edu.co"))
-        {
-            throw new BusinessRoleException("Solo se permiten correos institucionales @cecar.edu.co");
-        }
-
-
-
-        return _usuarioRepository.(id, request);
-    }*/
-
-
-
-    public IEnumerable<UsuarioReponse> Consultar(ConsultarUsuarioRequest request)
-    {
-        // Para este metodo necesitarías agregar un método en el repository
-        // que consulte por nombre y rol
-        var usuarios = new List<Usuario>();
-
-        // Por ahora retornamos una lista vacía
-        return usuarios.Select(MapToResponse);
-    }
-
-    public LoginReponse? Login(LoginRequest request)
-    {
-        var usuario = _usuarioRepository.Consultar(request.Email);
-
-        if (usuario is null || usuario.EstadoUsuario != EstadoUsuario.Activo)
-        {
-            throw new BusinessRoleException("Credenciales inválidas o usuario inactivo");
-        }
-
-        // Validar contraseña
-        if (usuario.Password != request.PassWord)
-        {
-            throw new BusinessRoleException("Credenciales inválidas");
-        }
-
-        // Generar token JWT (simulado)
-        var token = GenerarTokenJWT(usuario);
-
-        var usuarioResponse = new UsuarioReponse(
-            usuario.IdUsuario,
-            usuario.Identificacion,
-            usuario.Nombre,
-            usuario.Email,
-            usuario.RolUsuario,
-            usuario.EstadoUsuario,
-            usuario.FechaCreacion,
-            usuario.FechaActualizacion
-        );
-
-        return new LoginReponse(token, DateTime.UtcNow.AddHours(1), usuarioResponse);
-    }
-
-    public bool Activar(string id)
-    {
-        var usuario = _usuarioRepository.Consultar(id);
-
-        if (usuario is null)
-        {
-            return false;
-        }
-
-        if (usuario.EstadoUsuario == EstadoUsuario.Activo)
-        {
-            throw new BusinessRoleException("El usuario ya está activo");
-        }
-
     
-
-        return _usuarioRepository.Borrar(id);
-    }
-
-    private string GenerarTokenJWT(Usuario usuario)
-    {
-        // Simulación de generación de token JWT
-        return $"jwt_token_{usuario.IdUsuario}_{DateTime.UtcNow.Ticks}";
-    }
-
-    private UsuarioReponse MapToResponse(Usuario usuario)
-    {
-        return new UsuarioReponse(
-            usuario.IdUsuario,
-            usuario.Identificacion,
-            usuario.Nombre,
-            usuario.Email,
-            usuario.RolUsuario,
-            usuario.EstadoUsuario,
-            usuario.FechaCreacion,
-            usuario.FechaActualizacion
-        );
-    }
 }

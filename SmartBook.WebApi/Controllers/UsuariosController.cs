@@ -11,6 +11,7 @@ namespace SmartBook.WebApi.Controllers
     [ApiController]
     public class UsuariosController : ControllerBase
     {
+        /*
         //Recordar que REST es sin estado
         private readonly UsuarioService _usuarioService;
 
@@ -76,7 +77,7 @@ namespace SmartBook.WebApi.Controllers
                 return NotFound();
             }
             return NoContent();
-        }*/
+        }
 
         [HttpPost("login")]
         public ActionResult Login(LoginRequest request)
@@ -106,5 +107,7 @@ namespace SmartBook.WebApi.Controllers
             }
             return Ok(new { message = "Usuario activado correctamente" });
         }
+    }
+    */
     }
 }

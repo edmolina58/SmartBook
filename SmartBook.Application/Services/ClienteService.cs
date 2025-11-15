@@ -54,7 +54,6 @@ public class ClienteService : IClienteService
         var respouesta = new ClienteReponse(cliente.Identificacion,cliente.Nombres,cliente.Email);
 
 
-        //Respondo un 201 con el response body de la respuesta
         return respouesta;
     }
 
@@ -68,8 +67,8 @@ public class ClienteService : IClienteService
 
     public bool Actualizar(string id, ActualizarClienteRequest request)
     {
-        var cliente = _clienteRepository.Consultar(id);
-        if (cliente is null) return false;
+        var cliente = _clienteRepository.Actulizar(id,request);
+        if (cliente is false) return false;
 
         // Validar edad mínima
         var edad = DateTime.Today.Year - request.FechaNacimientoCliente.Year;
@@ -77,7 +76,7 @@ public class ClienteService : IClienteService
         {
             throw new BusinessRoleException("El cliente debe tener al menos 14 años");
         }
-
+ 
         return _clienteRepository.Actulizar(id, request);
     }
 

@@ -9,5 +9,5 @@ public record ActualizarClienteRequest
     string NombreCliente,
     string EmailCliente,
     string CelularCliente,
-    DateOnly FechaNacimientoCliente  
+    DateTime FechaNacimientoCliente  
     );

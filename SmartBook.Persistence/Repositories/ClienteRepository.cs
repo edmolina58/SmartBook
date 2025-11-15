@@ -38,9 +38,7 @@ public class ClienteRepository : IClienteRepository
                 long cantidad = (long)cmd.ExecuteScalar();
                 return cantidad > 0;
 
-                //Si cantidad > 0 = true(sí existe)
-                // Posdata recorando: si se uso IA porque este requerimiento que el profe dio no añadia tambien el estado, solo por nombre
-                //Si cantidad = 0 = false(no existe)
+
             }
         }
     }
@@ -56,7 +54,7 @@ public class ClienteRepository : IClienteRepository
 
             conexion.Open();
             //3 El comando SQL
-            Sql = "DELETE FROM productos WHERE id_cliente = @id";
+            Sql = "DELETE FROM clientes WHERE id_cliente = @id";
 
             //4 Crear comando
             using (var cmd = new MySqlCommand(Sql, conexion))
@@ -82,13 +80,14 @@ public class ClienteRepository : IClienteRepository
         {
             conexion.Open();
 
-            Sql = @"UPDATE cliente 
+            Sql = @"UPDATE clientes 
                SET fecha_nacimiento = @fecha_nacimiento, 
                    identificacion = @identificacion, 
                    nombreCompleto = @nombreCompleto, 
                    email = @email, 
                    celular = @celular 
-               WHERE id = @id";
+               WHERE id_cliente = @id";
+ 
 
             using (var cmd = new MySqlCommand(Sql, conexion))
             {
@@ -98,7 +97,7 @@ public class ClienteRepository : IClienteRepository
                 cmd.Parameters.AddWithValue("@fecha_nacimiento", request.FechaNacimientoCliente);
                 cmd.Parameters.AddWithValue("@identificacion", request.identificacion);
                 cmd.Parameters.AddWithValue("@nombreCompleto", request.NombreCliente);
-                cmd.Parameters.AddWithValue("@email", request.EmailCliente); // Usar el calculado
+                cmd.Parameters.AddWithValue("@email", request.EmailCliente);    
                 cmd.Parameters.AddWithValue("@celular", request.CelularCliente);
 
                 return cmd.ExecuteNonQuery() > 0;
@@ -116,8 +115,8 @@ public class ClienteRepository : IClienteRepository
 
 
             conexion.Open();
-            Sql = @"INSERT INTO cliente VALUES(@id_cliente,@fecha_nacimiento,@identificacion,@nombrecompleto,@email,@celular)";
-
+            Sql = @"INSERT INTO clientes (id_cliente,fecha_nacimiento, identificacion, nombreCompleto, email, celular) 
+                        VALUES(@id_cliente,@fecha_nacimiento,@identificacion,@nombrecompleto,@email,@celular)";
 
             using (var cmd = new MySqlCommand(Sql, conexion))
             {
@@ -149,7 +148,8 @@ public class ClienteRepository : IClienteRepository
 
             conexion.Open();
             Sql = @"SELECT id_cliente,fecha_nacimiento,identificacion,nombreCompleto,email  
-                ,celular  FROM cliente WHERE identificacion=@identificacion";
+                ,celular  FROM clientes WHERE identificacion=@identificacion";
+
 
             using (var cmd = new MySqlCommand(Sql, conexion))
             {
@@ -171,11 +171,11 @@ public class ClienteRepository : IClienteRepository
                 var nombreCompleto =reader["nombreCompleto"].ToString();
                 var email = reader["email"].ToString();
                 return new ConsultarClienteReponse(
-                    id,
+                    id!,
                     identificacion,
-                    nombreCompleto,
-                    email,
-                    celular,
+                    nombreCompleto!,
+                    email!,
+                    celular!,
                     fecha_nacimiento
                     
                 );
@@ -194,8 +194,9 @@ public class ClienteRepository : IClienteRepository
 
 
             Sql = @"SELECT id_cliente,fecha_nacimiento,identificacion,nombreCompleto,email  
-                ,celular FROM cliente 
+                ,celular FROM clientes
                 WHERE  nombreCompleto = @nombreCompleto";
+ 
 
             using (var cmd = new MySqlCommand(Sql, conexion))
             {
@@ -213,11 +214,11 @@ public class ClienteRepository : IClienteRepository
                     var email = reader["email"].ToString();
                     var celular = reader["celular"].ToString();
                     resultados.Add(new ConsultarClienteReponse(
-                    Id,
-                    identificacion,
+                    Id!,
+                    identificacion!,
                     nombreCompleto,
-                    email,
-                    celular,
+                    email!,
+                    celular!,
                     fecha_nacimiento
                     ));
                 }

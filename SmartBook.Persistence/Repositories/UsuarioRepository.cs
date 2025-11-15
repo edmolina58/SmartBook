@@ -19,7 +19,7 @@ public class UsuarioRepository
         _connectionString = _configuration.GetConnectionString("smarkbook");
     }
 
-
+    /*
     private string Sql { get; set; }
     //valida la creacion del Cliente
     public bool ValidarCreacionCliente(string nombreCliente)
@@ -119,4 +119,5 @@ public class UsuarioRepository
             FechaActualizacion = Convert.ToDateTime(reader["fecha_actualizacion"])
         };
     }
+     */
 }

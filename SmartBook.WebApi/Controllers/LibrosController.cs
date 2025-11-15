@@ -3,6 +3,7 @@ using SmartBook.Application.Interface;
 using SmartBook.Domain.Dtos.Requests.LibroRequest;
 using SmartBook.Domain.Dtos.Requests.LibrosRequest;
 using SmartBook.Domain.Exceptions;
+using SmartBook.Services;
 using SmartBook.WebApi.Services;
 
 
@@ -12,6 +13,11 @@ namespace SmartBook.WebApi.Controllers;
 public class LibrosController : ControllerBase
 {
     private readonly ILibroService _libroService ;
+    public LibrosController(ILibroService libroService)
+    {
+        _libroService = libroService;
+
+    }
 
     [HttpPost]
     public ActionResult Crear(CrearLibroRequest request)

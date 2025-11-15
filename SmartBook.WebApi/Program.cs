@@ -1,5 +1,5 @@
 
-using Microsoft.AspNetCore.Cors.Infrastructure;
+using SmartBook.Application.Interface;
 using SmartBook.Domain.Entities;
 using SmartBook.Persistence.Repositories;
 using SmartBook.Persistence.Repositories.Interface;
@@ -22,27 +22,27 @@ using SmartBook.WebApi.Services;
 
             //Los repositorios que se contectaran
             builder.Services.AddScoped<IClienteRepository,ClienteRepository>();
-            builder.Services.AddScoped<ClienteService>();
+            builder.Services.AddScoped<IClienteService,ClienteService>();
 
             builder.Services.AddScoped<ILibroRepository,LibroRepository>();
             builder.Services.AddScoped<LibroService>();
 
 
             builder.Services.AddScoped<IVentaRepository, VentaRepository>();
-            builder.Services.AddScoped<VentaService>();
+            builder.Services.AddScoped<IVentaService,VentaService>();
 
             builder.Services.AddScoped<UsuarioRepository>();
             //Registro mis dependencias en el contenedor de dependencias
-
-
-
-
 
 
             // Email
             builder.Services.Configure<EmailSettings>(
             builder.Configuration.GetSection("EmailSettings")
                 );// Email
+
+
+
+
 
 
 
