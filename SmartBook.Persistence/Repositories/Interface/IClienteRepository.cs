@@ -8,7 +8,7 @@ namespace SmartBook.Persistence.Repositories.Interface;
 public interface IClienteRepository 
 {
 
-    public bool ExisteCliente(string nombre, string identificacion);
+    public bool ExisteCliente( string identificacion);
     public bool Borrar(string id);
 
     public bool Actulizar(string id, ActualizarClienteRequest request);

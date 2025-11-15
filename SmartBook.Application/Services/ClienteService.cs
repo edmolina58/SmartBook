@@ -17,7 +17,7 @@ public class ClienteService : IClienteService
 
     private readonly IClienteRepository _clienteRepository;
     private readonly IConfiguration _configuration;
-
+    
 
     public ClienteService(IClienteRepository clienteRepository, IConfiguration configuration)
     {
@@ -27,12 +27,16 @@ public class ClienteService : IClienteService
     }
     public ClienteReponse? Crear(CrearClienteRequest request)
     {
-        // Validar que no exista cliente con misma identificación
-        if (_clienteRepository.ExisteCliente(request.NombreCliente,request.IdentificacionCliente))
+
+        if (_clienteRepository.ExisteCliente(request.IdentificacionCliente))
         {
             throw new BusinessRoleException("Ya existe un cliente con esta identificación");
         }
-
+        var edad = DateTime.Today.Year - request.FechaNacimiento.Year;
+        if (edad < 14)
+        {
+            throw new BusinessRoleException("El cliente debe tener al menos 14 años");
+        }
 
 
         var cliente = new Cliente
@@ -43,7 +47,6 @@ public class ClienteService : IClienteService
             Email = request.EmailCliente,
             Celular = request.Celular,
             FechaNacimiento = request.FechaNacimiento
-
 
         };
 
@@ -85,10 +88,10 @@ public class ClienteService : IClienteService
         return _clienteRepository.Consultar(id);
     }
 
-    public IEnumerable<ClienteReponse> ConsultarPorIdentificacion(ConsultarClienteFiltradoNombreRequest request)
+    public IEnumerable<ConsultarClienteReponse> ConsultarPorIdentificacion(ConsultarClienteFiltradoNombreRequest request)
     {
 
-        return (IEnumerable<ClienteReponse>)_clienteRepository.ConsultarPorNombre(request.nombrecompleto);
+        return (IEnumerable<ConsultarClienteReponse>)_clienteRepository.ConsultarPorNombre(request.nombrecompleto);
     }
 
 

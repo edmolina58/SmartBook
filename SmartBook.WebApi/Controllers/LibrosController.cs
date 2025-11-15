@@ -25,7 +25,6 @@ public class LibrosController : ControllerBase
         try
         {
 
-
             var libro = _libroService.Crear(request);
 
             if (libro is null)
@@ -72,6 +71,11 @@ public class LibrosController : ControllerBase
     {
 
         var libro = _libroService.ConsultarProductosCompletos(request);
+        if (libro is null)
+        { 
+        return NotFound();
+        }
+
         return Ok(libro);
     }
 

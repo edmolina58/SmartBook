@@ -12,7 +12,7 @@ public class ClienteRepository : IClienteRepository
     private readonly IConfiguration _configuration;
 
     private readonly string _connectionString;
-
+    private const string FORMATO_FECHA = "yyyy-MM-dd";
     public ClienteRepository(IConfiguration configuration)
     {
         _configuration = configuration;
@@ -22,18 +22,17 @@ public class ClienteRepository : IClienteRepository
 
 
     private string Sql { get; set; }
-    public bool ExisteCliente(string nombre, string identificacion)
+    public bool ExisteCliente(string identificacion)
     {
         using (var conexion = new MySqlConnection(_connectionString))
         {
             conexion.Open();
 
             Sql = @"SELECT COUNT(*) FROM clientes 
-                WHERE nombreCompleto = @nombre AND identificacion = @identificacion";
+                WHERE identificacion = @identificacion";
 
             using (var cmd = new MySqlCommand(Sql, conexion))
             {
-                cmd.Parameters.AddWithValue("@nombre", nombre);
                 cmd.Parameters.AddWithValue("@identificacion", identificacion);
                 long cantidad = (long)cmd.ExecuteScalar();
                 return cantidad > 0;
@@ -94,7 +93,7 @@ public class ClienteRepository : IClienteRepository
 
 
                 cmd.Parameters.AddWithValue("@id", id);
-                cmd.Parameters.AddWithValue("@fecha_nacimiento", request.FechaNacimientoCliente);
+                cmd.Parameters.AddWithValue("@fecha_nacimiento", request.FechaNacimientoCliente.ToString(FORMATO_FECHA));
                 cmd.Parameters.AddWithValue("@identificacion", request.identificacion);
                 cmd.Parameters.AddWithValue("@nombreCompleto", request.NombreCliente);
                 cmd.Parameters.AddWithValue("@email", request.EmailCliente);    
@@ -124,7 +123,7 @@ public class ClienteRepository : IClienteRepository
 
                 //5 Remplazar valores
                 cmd.Parameters.AddWithValue("@id_cliente", cliente.IdCliente);
-                cmd.Parameters.AddWithValue("@fecha_nacimiento", cliente.FechaNacimiento);
+                cmd.Parameters.AddWithValue("@fecha_nacimiento", cliente.FechaNacimiento.ToString(FORMATO_FECHA));
                 cmd.Parameters.AddWithValue("@identificacion", cliente.Identificacion);
                 cmd.Parameters.AddWithValue("@nombrecompleto", cliente.Nombres);
                 cmd.Parameters.AddWithValue("@email", cliente.Email);

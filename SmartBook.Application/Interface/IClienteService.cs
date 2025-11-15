@@ -17,6 +17,6 @@ public interface IClienteService
      bool Actualizar(string id, ActualizarClienteRequest request);
 
      ConsultarClienteReponse Consultar(string id);
-    IEnumerable<ClienteReponse> ConsultarPorIdentificacion(ConsultarClienteFiltradoNombreRequest request);
+     IEnumerable<ConsultarClienteReponse> ConsultarPorIdentificacion(ConsultarClienteFiltradoNombreRequest request);
 
 }

@@ -25,13 +25,13 @@ public class ClientesController : ControllerBase
         {
 
 
-            var libro = _clienteService.Crear(request);
+            var cliente = _clienteService.Crear(request);
 
-            if (libro is null)
+            if (cliente is null)
             {
                 return BadRequest();
             }
-            return Created(string.Empty, libro);
+            return Created(string.Empty, cliente);
         }
         catch (BusinessRoleException exb)
         {
@@ -59,12 +59,12 @@ public class ClientesController : ControllerBase
     [HttpGet("{id}")]
     public ActionResult Consultar(string id)
     {
-        var libro = _clienteService.Consultar(id);
-        if (libro is null)
+        var cliente = _clienteService.Consultar(id);
+        if (cliente is null)
         {
             return NotFound();
         }
-        return Ok(libro);
+        return Ok(cliente);
     }
 
     [HttpGet]
