@@ -1,7 +1,8 @@
-
+﻿
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using SmartBook.Application.Interface;
+using SmartBook.Application.Services;
+using SmartBook.Application.Services.Interface;
 using SmartBook.Domain.Entities;
 using SmartBook.Persistence.Repositories;
 using SmartBook.Persistence.Repositories.Interface;
@@ -18,39 +19,32 @@ var builder = WebApplication.CreateBuilder(args);
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            
+
+// ✅ Repositorios
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+builder.Services.AddScoped<ILibroRepository, LibroRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IVentaRepository, VentaRepository>();
+
+// ✅ Servicios de Aplicación
+builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<ILibroService, LibroService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IVentaService, VentaService>();
+
+// ✅ Servicios de Infraestructura
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddSingleton<ITokenService, TokenService>();
+
+// ✅ Email Settings
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings")
+);
 
 
 
 
-            //Los repositorios que se contectaran
-            builder.Services.AddScoped<IClienteRepository,ClienteRepository>();
-            builder.Services.AddScoped<IClienteService,ClienteService>();
-
-            builder.Services.AddScoped<ILibroRepository,LibroRepository>();
-            builder.Services.AddScoped<ILibroService,LibroService>();
-
-            builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-            builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-
-
-            builder.Services.AddScoped<IVentaRepository, VentaRepository>();
-            builder.Services.AddScoped<IVentaService, VentaService>();
-
-            //Registro mis dependencias en el contenedor de dependencias
-
-
-            // Email
-            builder.Services.Configure<EmailSettings>(
-            builder.Configuration.GetSection("EmailSettings")
-                );// Email
-
-
-
-
-
-
-            builder.Services.AddAuthentication(config =>
+builder.Services.AddAuthentication(config =>
             {
 
                 config.DefaultAuthenticateScheme= JwtBearerDefaults.AuthenticationScheme;

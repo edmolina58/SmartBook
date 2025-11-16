@@ -1,16 +1,14 @@
 ﻿
 using Microsoft.Extensions.Configuration;
 using SmartBook.Aplicacion.Extensions;
-using SmartBook.Application.Interface;
+using SmartBook.Application.Services.Interface;
 using SmartBook.Domain.Dtos.Reponses.ClienteReponse;
 using SmartBook.Domain.Dtos.Requests.ClienteRequest;
 using SmartBook.Domain.Dtos.Requests.ClientesRequest;
-using SmartBook.Domain.Dtos.Requests.LibroRequest;
 using SmartBook.Domain.Entities;
 using SmartBook.Domain.Exceptions;
-using SmartBook.Persistence.Repositories;
 using SmartBook.Persistence.Repositories.Interface;
-using System.Configuration;
+
 namespace SmartBook.Services;
 
 public class ClienteService : IClienteService
@@ -91,7 +89,6 @@ public class ClienteService : IClienteService
         
         }
 
-        // Validar edad mínima
         var edad = DateTime.Today.Year - request.FechaNacimientoCliente.Year;
         if (edad < 14)
         {

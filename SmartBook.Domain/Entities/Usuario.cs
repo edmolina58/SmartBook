@@ -12,8 +12,7 @@ public class Usuario
     [Required]
     public string Identificacion { get; init; }
     [Required]
-    //Queda por modificar mas cosas
-    public string Password { get; init; }
+    public string Password { get; set; }
     [Required]
     public string NombreCompleto {  get; init; }
    
@@ -23,7 +22,6 @@ public class Usuario
     public string Email { get; init; }
 
     [Required]
-    // verificar si estas declaraciones son correctas
     public RolUsuario RolUsuario { get; init; }
     
 

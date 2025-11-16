@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SmartBook.Application.Interface;
+using SmartBook.Application.Services.Interface;
 using SmartBook.Domain.Dtos.Requests.ClienteRequest;
 using SmartBook.Domain.Dtos.Requests.ClientesRequest;
 using SmartBook.Domain.Exceptions;

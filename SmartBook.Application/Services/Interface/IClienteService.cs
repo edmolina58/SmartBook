@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SmartBook.Application.Interface;
+namespace SmartBook.Application.Services.Interface;
 public interface IClienteService
 {
 
