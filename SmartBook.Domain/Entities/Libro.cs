@@ -27,15 +27,6 @@ public class Libro
 
     [Required]
     public int Stock { get; init; }
-
-
-  // libro puede ingresar muchas veces
-  public ICollection<Ingreso> Ingresos { get; init; }
-
-    // un libro puede venderse muchas veces
-    public ICollection<VentaDetalle> VentaDetalles { get; init; }
-
-    // sin libros no hay nada que vender tecnicamente
-
+  
 
 }

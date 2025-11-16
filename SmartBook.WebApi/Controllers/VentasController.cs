@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SmartBook.Application.Interface;
+using SmartBook.Application.Services.Interface;
 using SmartBook.Domain.Dtos.Requests.VentasRequest;
 using SmartBook.Domain.Exceptions;
 using SmartBook.WebApi.Services;

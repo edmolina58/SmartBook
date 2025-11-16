@@ -2,7 +2,7 @@
 
 public enum RolUsuario
 {
-Admin,
-Vendedor
+Admin=0,
+Vendedor=1
 }
 

@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.Data;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SmartBook.Application.Interface;
-using SmartBook.Domain.Dtos.Requests.LibroRequest;
-using SmartBook.Domain.Dtos.Requests.LibrosRequest;
+using SmartBook.Application.Services.Interface;
+using SmartBook.Domain.Dtos.Reponses.UsuariosReponses;
+using SmartBook.Domain.Dtos.Requests.LoginRequest;
 using SmartBook.Domain.Dtos.Requests.UsuarioRequest;
+using SmartBook.Domain.Enums;
 using SmartBook.Domain.Exceptions;
-using SmartBook.WebApi.Services;
 
 namespace SmartBook.WebApi.Controllers
 {
@@ -14,70 +14,93 @@ namespace SmartBook.WebApi.Controllers
     [ApiController]
     public class UsuariosController : ControllerBase
     {
-
         private readonly IUsuarioService _usuarioService;
+
         public UsuariosController(IUsuarioService usuarioService)
         {
             _usuarioService = usuarioService;
-
         }
 
+
+
+
+        [Authorize] 
         [HttpPost]
-        public ActionResult Crear(CrearUsuarioRequest request)
+        public async Task<ActionResult<UsuarioReponse>> Crear(CrearUsuarioRequest request)
         {
             try
             {
+                var rolActual = User.Claims.FirstOrDefault(c => c.Type == "rol")?.Value;
 
-                var usuario = _usuarioService.Crear(request);
-
-                if (usuario is null)
+                if (request.RolUsuario == RolUsuario.Admin && rolActual != "Admin")
                 {
-                    return BadRequest();
+                    return Forbid("Solo los administradores pueden crear cuentas de administradores.");
                 }
+
+                var usuario = await _usuarioService.Crear(request);
+
+              
                 return Created(string.Empty, usuario);
             }
             catch (BusinessRoleException exb)
             {
-                return UnprocessableEntity(exb.Message);
+                return UnprocessableEntity(new { mensaje = exb.Message });
             }
-            catch (Exception exg)
+            catch (Exception)
             {
-
-                return StatusCode(StatusCodes.Status500InternalServerError, exg.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { mensaje = "Ocurrió un error al procesar la solicitud" });
             }
         }
 
 
 
-
-    
-        [HttpGet]
-        public ActionResult Consultar([FromQuery] ConsultarUsuarioRequest request)
+        [HttpGet("verificar-email")]
+        public async Task<ActionResult> VerificarEmail([FromQuery] string token)
         {
-
-            var usuario = _usuarioService.ConsultarUsuario(request);
-            if (usuario  is null)
+            try
             {
-                return NotFound();
+                await _usuarioService.VerificarEmail(token);
+                return Ok(new { mensaje = "Email verificado y cuenta confirmada exitosamente." });
             }
-
-            return Ok(usuario);
+            catch (BusinessRoleException exb)
+            {
+                return BadRequest(new { mensaje = exb.Message });
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { mensaje = "Ocurrió un error al procesar la solicitud" });
+            }
         }
 
-        /*
-        [HttpPut("{id}")]
-        public ActionResult Actualizar(string id, ActualizarUsuarioRequest request)
+        [HttpPost("solicitar-restablecer-password")]
+        public async Task<ActionResult> SolicitarRestablecerPassword([FromQuery] string email)
         {
-            var usuario = _usuarioService.Actualizar(id, request);
-
-            if (!usuario)
+            try
             {
-
-                return NotFound();
+                await _usuarioService.EnviarTokenRestablecimientoPasswordAsync(email);
+                return Ok(new { mensaje = "Se ha enviado un enlace de restablecimiento a tu correo." });
             }
-            return NoContent();
-        }*/
+            catch (BusinessRoleException exb)
+            {
+                return BadRequest(new { mensaje = exb.Message });
+            }
+        }
 
+        [HttpPost("restablecer-password")]
+        public async Task<ActionResult> RestablecerPassword([FromQuery] string token, [FromQuery] string nuevaPassword)
+        {
+            try
+            {
+                await _usuarioService.RestablecerPasswordAsync(token, nuevaPassword);
+                return Ok(new { mensaje = "Contraseña restablecida correctamente." });
+            }
+            catch (BusinessRoleException exb)
+            {
+                return BadRequest(new { mensaje = exb.Message });
+            }
+        }
 
     }
 }

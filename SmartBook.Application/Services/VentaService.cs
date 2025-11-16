@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using SmartBook.Aplicacion.Extensions;
-using SmartBook.Application.Interface;
+using SmartBook.Application.Services.Interface;
 using SmartBook.Domain.Dtos.Reponses.VentasReponse;
 using SmartBook.Domain.Dtos.Reponses.VentasReponses;
 using SmartBook.Domain.Dtos.Requests.VentasRequest;
@@ -12,7 +12,7 @@ namespace SmartBook.WebApi.Services;
 
 public class VentaService : IVentaService
 {
-    private static readonly List<Venta> _venta = [];
+    private static readonly List<Venta> _venta = []; 
     private readonly IVentaRepository _ventaRepository;
 
 

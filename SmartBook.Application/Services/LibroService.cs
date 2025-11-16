@@ -1,7 +1,7 @@
 ﻿
 using Microsoft.Extensions.Configuration;
 using SmartBook.Aplicacion.Extensions;
-using SmartBook.Application.Interface;
+using SmartBook.Application.Services.Interface;
 using SmartBook.Domain.Dtos.Reponses.LibrosReponse;
 using SmartBook.Domain.Dtos.Requests.LibroRequest;
 using SmartBook.Domain.Dtos.Requests.LibrosRequest;
@@ -60,7 +60,6 @@ public class LibroService : ILibroService
     public ConsultarLibroReponse Consultar(string id)
     {
         return _librosRepository.Consultar(id);
-
 
     }
 

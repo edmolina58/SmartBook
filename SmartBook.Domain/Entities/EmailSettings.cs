@@ -3,9 +3,9 @@
 namespace SmartBook.Domain.Entities;
 public class EmailSettings
 {
-    public string Host { get; init; }
-    public int Port { get; init; }
-    public bool EnableSsl { get; init; }
-    public string User { get; init; }
-    public string Password { get; init; }
+    public string Host { get; set; }
+    public int Port { get; set; }
+    public bool EnableSsl { get; set; }
+    public string User { get; set; }
+    public string Password { get; set; }
 }
