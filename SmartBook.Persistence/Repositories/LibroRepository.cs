@@ -16,6 +16,7 @@ public class LibroRepository : ILibroRepository
     {
         _configuration = configuration;
         _connectionString = _configuration.GetConnectionString("smarkbook");
+
     }
 
     private string sql { get; set; }
@@ -26,7 +27,7 @@ public class LibroRepository : ILibroRepository
         {
             conexion.Open();
 
-             sql = @"SELECT COUNT(*) 
+            sql = @"SELECT COUNT(*) 
                        FROM libros 
                        WHERE nombre = @nombre 
                          AND nivel = @nivel 
@@ -41,7 +42,7 @@ public class LibroRepository : ILibroRepository
                 cmd.Parameters.AddWithValue("@edicion", edicion);
 
                 long cantidad = (long)cmd.ExecuteScalar();
-                return cantidad > 0; 
+                return cantidad > 0;
             }
         }
     }
@@ -100,18 +101,18 @@ public class LibroRepository : ILibroRepository
         var tipo = (TipoLibro)Convert.ToInt32(reader["tipo"]);
         var editorial = reader["editorial"].ToString();
         var edicion = reader["edicion"].ToString();
-
+        command.ExecuteNonQuery();
         return new ConsultarLibroReponse(
-        id,
-        nombre,
-        nivel,
-        tipo,
-        stock,
-       editorial,
-       edicion
-        );
+                       id,
+                       nombre,
+                       nivel,
+                       tipo,
+                       stock,
+                      editorial,
+                      edicion
+       );
 
-       
+
     }
 
 
@@ -144,8 +145,8 @@ public class LibroRepository : ILibroRepository
             var libro = new ConsultarLibroReponse(
                 id: reader["id_libro"].ToString(),
                 nombre: reader["nombre"].ToString(),
-                nivel= reader["nivel"].ToString(),
-                tipoLibro= Enum.TryParse(reader["tipo"].ToString(), out TipoLibro tipo) ? tipo : TipoLibro.StudensBoook,
+                nivel = reader["nivel"].ToString(),
+                tipoLibro = Enum.TryParse(reader["tipo"].ToString(), out TipoLibro tipo) ? tipo : TipoLibro.StudensBoook,
                 stock: Convert.ToInt32(reader["stock"]),
                 editorial: reader["editorial"].ToString(),
                 edicion: reader["edicion"].ToString()

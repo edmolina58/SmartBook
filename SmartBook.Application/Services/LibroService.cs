@@ -7,9 +7,7 @@ using SmartBook.Domain.Dtos.Requests.LibroRequest;
 using SmartBook.Domain.Dtos.Requests.LibrosRequest;
 using SmartBook.Domain.Entities;
 using SmartBook.Domain.Exceptions;
-using SmartBook.Persistence.Repositories;
 using SmartBook.Persistence.Repositories.Interface;
-using System.Configuration;
 
 namespace SmartBook.WebApi.Services;
 
@@ -38,11 +36,11 @@ public class LibroService : ILibroService
         var libro = new Libro
         {
             IdLibro = DateTime.Now.Ticks.ToString(),
-            Nombre = request.Nombre.Sanitize().RemoveAccents().Sanitize().RemoveAccents(),
-            Nivel = request.Nivel,
+            Nombre = request.Nombre.Sanitize().RemoveAccents(),
+            Nivel = request.Nivel.Sanitize().RemoveAccents(),
             TipoLibro = request.TipoLibro,
-            Editorial =request.Editorial.Sanitize().RemoveAccents().Sanitize().RemoveAccents(),
-            Edicion = request.Edicion.Sanitize().RemoveAccents().Sanitize().RemoveAccents(),
+            Editorial = request.Editorial.Sanitize().RemoveAccents(),
+            Edicion = request.Edicion.Sanitize().RemoveAccents(),
             Stock = request.stock,
 
         };
@@ -69,7 +67,17 @@ public class LibroService : ILibroService
     public bool Actualizar(string id, ActualizarLibrosRequest request)
     {
 
-        return _librosRepository.Actualizar(id, request);
+
+        var libro = new ActualizarLibrosRequest
+        (
+            Nombre: request.Nombre.Sanitize().RemoveAccents(),
+            Nivel: request.Nivel.Sanitize().RemoveAccents(),
+            TipoLibro: request.TipoLibro,
+            Editorial: request.Editorial.Sanitize().RemoveAccents(),
+            Edicion: request.Edicion.Sanitize().RemoveAccents()
+        );
+
+        return _librosRepository.Actualizar(id, libro);
 
     }
 

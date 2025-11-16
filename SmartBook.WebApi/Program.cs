@@ -50,7 +50,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 
-            builder.Services.AddSingleton<UsuarioService>();
             builder.Services.AddAuthentication(config =>
             {
 
@@ -75,6 +74,8 @@ var builder = WebApplication.CreateBuilder(args);
                     )
                 };
             });
+
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

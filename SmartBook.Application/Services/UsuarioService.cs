@@ -83,22 +83,6 @@ public class UsuarioService: IUsuarioService
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     private bool ValidarPassword(string password)
     {
         if (string.IsNullOrWhiteSpace(password))
@@ -108,6 +92,8 @@ public class UsuarioService: IUsuarioService
 
         return regex.IsMatch(password);
     }
+
+
 
     public string encriptarpassword(string texto)
     {

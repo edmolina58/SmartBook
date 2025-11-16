@@ -6,7 +6,7 @@ using SmartBook.Domain.Dtos.Reponses.VentasReponses;
 using SmartBook.Domain.Dtos.Requests.VentasRequest;
 using SmartBook.Domain.Entities;
 using SmartBook.Persistence.Repositories.Interface;
-using System;
+
 
 namespace SmartBook.WebApi.Services;
 
@@ -25,9 +25,6 @@ public class VentaService : IVentaService
     }
 
 
-
-
-
     public VentaReponse? Crear(CrearVentaRequest request)
     { 
             var venta = new Venta
@@ -35,9 +32,9 @@ public class VentaService : IVentaService
                 Id = DateTime.Now.Ticks.ToString(),
                 NumeroReciboPago = (int)(DateTime.Now.Ticks & 0x7FFFFFFF),
                 Fecha = DateTime.Now,
-                ClienteId = request.ClienteId,
-                UsuarioId = request.UsuarioId,
-                LibroId = request.LibroId,
+                ClienteId = request.ClienteId.Sanitize().RemoveAccents(),
+                UsuarioId = request.UsuarioId.Sanitize().RemoveAccents(),
+                LibroId = request.LibroId.Sanitize().RemoveAccents(),
                 Observaciones = request.Observaciones.Sanitize().RemoveAccents(),
                  
 

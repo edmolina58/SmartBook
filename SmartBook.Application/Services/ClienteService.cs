@@ -5,6 +5,7 @@ using SmartBook.Application.Interface;
 using SmartBook.Domain.Dtos.Reponses.ClienteReponse;
 using SmartBook.Domain.Dtos.Requests.ClienteRequest;
 using SmartBook.Domain.Dtos.Requests.ClientesRequest;
+using SmartBook.Domain.Dtos.Requests.LibroRequest;
 using SmartBook.Domain.Entities;
 using SmartBook.Domain.Exceptions;
 using SmartBook.Persistence.Repositories;
@@ -44,7 +45,7 @@ public class ClienteService : IClienteService
             IdCliente = DateTime.Now.Ticks.ToString(),
             Identificacion = request.IdentificacionCliente.Sanitize().RemoveAccents(),
             Nombres = request.NombreCliente.Sanitize().RemoveAccents(),
-            Email = request.EmailCliente.Sanitize(),
+            Email = request.EmailCliente.Sanitize().RemoveAccents(),
             Celular = request.Celular.Sanitize().RemoveAccents(),
             FechaNacimiento = request.FechaNacimiento
 
@@ -70,16 +71,34 @@ public class ClienteService : IClienteService
 
     public bool Actualizar(string id, ActualizarClienteRequest request)
     {
-        var cliente = _clienteRepository.Actulizar(id,request);
-        if (cliente is false) return false;
+        
+  
+        var cliente = new ActualizarClienteRequest
+            (
+            identificacion: request.identificacion.Sanitize().RemoveAccents(),
+            NombreCliente: request.NombreCliente.Sanitize().RemoveAccents(),
+            EmailCliente: request.EmailCliente.Sanitize().RemoveAccents(),
+            CelularCliente: request.CelularCliente.Sanitize().RemoveAccents(),
+            FechaNacimientoCliente: request.FechaNacimientoCliente
+
+        );
+        if (cliente is null) {
+
+
+            return false;
+               
+        
+        
+        }
 
         // Validar edad mínima
         var edad = DateTime.Today.Year - request.FechaNacimientoCliente.Year;
         if (edad < 14)
         {
-            throw new BusinessRoleException("El cliente debe tener al menos 14 años");
+            throw new BusinessRoleException("El cliente debe tener al mas de 14 años");
         }
- 
+         _clienteRepository.Actulizar(id, cliente);
+
         return _clienteRepository.Actulizar(id, request);
     }
 
