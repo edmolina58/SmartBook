@@ -16,7 +16,8 @@ public class ClienteService : IClienteService
 
     private readonly IClienteRepository _clienteRepository;
     private readonly IConfiguration _configuration;
-    
+
+    private const string FORMATO_FECHA = "yyyy-MM-dd";
 
     public ClienteService(IClienteRepository clienteRepository, IConfiguration configuration)
     {
@@ -24,19 +25,34 @@ public class ClienteService : IClienteService
         _clienteRepository = clienteRepository;
 
     }
+
+
+    private bool EsMayorDeEdad(DateOnly fechaNacimiento)
+    {
+        var validar = DateOnly.FromDateTime(DateTime.Today).Year - fechaNacimiento.Year;
+        if (validar > 14)
+        { return false; }
+        else
+        { return true; }
+
+    }
+
+
     public ClienteReponse? Crear(CrearClienteRequest request)
     {
 
-        if (_clienteRepository.ExisteCliente(request.IdentificacionCliente))
+        var identificacionNormalizada = request.IdentificacionCliente.Sanitize().RemoveAccents();
+
+        if (_clienteRepository.ExisteCliente(identificacionNormalizada))
         {
             throw new BusinessRoleException("Ya existe un cliente con esta identificación");
         }
-        var edad = DateTime.Today.Year - request.FechaNacimiento.Year;
-        if (edad < 14)
+        bool edad = EsMayorDeEdad(request.FechaNacimiento);
+
+        if (edad is false)
         {
             throw new BusinessRoleException("El cliente debe tener al menos 14 años");
         }
-
 
         var cliente = new Cliente
         {
@@ -45,32 +61,29 @@ public class ClienteService : IClienteService
             Nombres = request.NombreCliente.Sanitize().RemoveAccents(),
             Email = request.EmailCliente.Sanitize().RemoveAccents(),
             Celular = request.Celular.Sanitize().RemoveAccents(),
-            FechaNacimiento = request.FechaNacimiento
-
+            FechaNacimiento = request.FechaNacimiento,
+            fecha_creacion = DateTime.Now
         };
 
         _clienteRepository.Crear(cliente);
 
- 
 
-        var respouesta = new ClienteReponse(cliente.Identificacion,cliente.Nombres,cliente.Email);
+
+        var respouesta = new ClienteReponse(cliente.Identificacion, cliente.Nombres, cliente.Email);
 
 
         return respouesta;
     }
 
-    public bool Borrar(string id)
-    {
-        return _clienteRepository.Borrar(id);
-    }
+
 
 
 
 
     public bool Actualizar(string id, ActualizarClienteRequest request)
     {
-        
-  
+
+
         var cliente = new ActualizarClienteRequest
             (
             identificacion: request.identificacion.Sanitize().RemoveAccents(),
@@ -81,16 +94,12 @@ public class ClienteService : IClienteService
 
         );
         if (cliente is null) {
-
-
             return false;
-               
-        
-        
+
         }
 
-        var edad = DateTime.Today.Year - request.FechaNacimientoCliente.Year;
-        if (edad < 14)
+        var edad = EsMayorDeEdad(request.FechaNacimientoCliente);
+        if (edad is false)
         {
             throw new BusinessRoleException("El cliente debe tener al mas de 14 años");
         }

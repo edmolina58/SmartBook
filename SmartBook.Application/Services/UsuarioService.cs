@@ -1,18 +1,13 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using SmartBook.Aplicacion.Extensions;
+﻿using SmartBook.Aplicacion.Extensions;
 using SmartBook.Application.Services.Interface;
 using SmartBook.Domain.Dtos.Reponses.LoginsReponse;
 using SmartBook.Domain.Dtos.Reponses.UsuariosReponses;
 using SmartBook.Domain.Dtos.Requests.LoginRequest;
 using SmartBook.Domain.Dtos.Requests.UsuarioRequest;
 using SmartBook.Domain.Entities;
+using SmartBook.Domain.Enums;
 using SmartBook.Domain.Exceptions;
 using SmartBook.Persistence.Repositories.Interface;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SmartBook.Application.Services
@@ -20,72 +15,106 @@ namespace SmartBook.Application.Services
     public class UsuarioService : IUsuarioService
     {
         private readonly IUsuarioRepository _usuarioRepository;
-        private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
         private readonly ITokenService _tokenService;
 
         public UsuarioService(
             IUsuarioRepository usuarioRepository,
-            IConfiguration configuration,
             IEmailService emailService,
             ITokenService tokenService)
         {
-            _configuration = configuration;
             _usuarioRepository = usuarioRepository;
             _emailService = emailService;
             _tokenService = tokenService;
         }
 
-        public async Task<UsuarioReponse> Crear(CrearUsuarioRequest request)
+        public LoginReponse Login(LoginRequest request)
         {
-            bool validar = _usuarioRepository.ValidarCreacionUsuario(request.identificacion!);
-            if (!validar)
+            var email = request.Email.Sanitize().RemoveAccents();
+            var usuario = _usuarioRepository.ObtenerPorEmail(email);
+
+            if (usuario is null)
+                throw new BusinessRoleException("Credenciales inválidas");
+
+
+            if (VerificarPassword(request.PassWord.Sanitize().RemoveAccents(), usuario.Password) is false)
+                throw new BusinessRoleException("Credenciales inválidas");
+
+
+            if (usuario.RolUsuario == RolUsuario.Suspendida)
             {
-                throw new BusinessRoleException("Ya existe un usuario con esta identificación");
+                throw new BusinessRoleException("Tu cuenta ha sido suspendida. Contacta al administrador.");
             }
 
-            if (!request.EmailUsuario!.EndsWith("@cecar.edu.co"))
+            if (!EstaVerificado(usuario.Email))
             {
-                throw new BusinessRoleException("Solo se aceptan correos institucionales (@cecar.edu.co)");
+                throw new BusinessRoleException("Debes verificar tu cuenta antes de iniciar sesión. Revisa tu correo electrónico.");
             }
 
-            if (ValidarPassword(request.PasswordUsuario!) is false)
+            var token = _tokenService.GenerarTokenJWT(usuario);
+
+            return new LoginReponse(token);
+        }
+
+        public async Task<UsuarioReponse> Crear(CrearUsuarioRequest request, string rolActual, string idUsuarioActual)
+        {
+            var identificacion = request.identificacion!.Sanitize().RemoveAccents();
+            var nombre = request.NombreUsuario!.Sanitize().RemoveAccents();
+            var email = request.EmailUsuario!.Sanitize().RemoveAccents();
+
+            if (rolActual != RolUsuario.Admin.ToString())
             {
-                throw new BusinessRoleException("La contraseña debe tener al menos 8 caracteres");
+                throw new BusinessRoleException("Solo los administradores pueden crear usuarios");
             }
 
-            // Generar token de verificación
-            var tokenVerificacion = _tokenService.GenerarTokenVerificacion(request.EmailUsuario);
+            if (request.RolUsuario == RolUsuario.Admin && rolActual != RolUsuario.Admin.ToString())
+            {
+                throw new BusinessRoleException("Solo los administradores pueden crear cuentas de administradores");
+            }
 
-            // Enviar email con el token directamente
-            await _emailService.EnviarEmailVerificacionAsync(
-                request.EmailUsuario,
-                request.NombreUsuario,
-                tokenVerificacion
-            );
+            if (!_usuarioRepository.ValidarCreacionUsuario(identificacion))
+            {
+                throw new BusinessRoleException("Ya existe un usuario");
+            }
 
-            // Crear usuario (pero no guardarlo hasta que se verifique el email)
+            if (!email.EndsWith("@cecar.edu.co"))
+            {
+                throw new BusinessRoleException("Solo se aceptan correos institucionales");
+            }
+
+            if (!ValidarPassword(request.PasswordUsuario!))
+            {
+                throw new BusinessRoleException("Digite una contraseña segura porfavor");
+            }
+
+            var tokenVerificacion = _tokenService.GenerarTokenVerificacion(email);
+
+
             var usuario = new Usuario
             {
                 IdUsuario = DateTime.Now.Ticks.ToString(),
-                Identificacion = request.identificacion!.Sanitize().RemoveAccents(),
-                NombreCompleto = request.NombreUsuario!.Sanitize().RemoveAccents(),
-                Email = request.EmailUsuario!.Sanitize().RemoveAccents(),
-                Password = encriptarpassword(request.PasswordUsuario!),
-                RolUsuario = request.RolUsuario
+                Identificacion = identificacion,
+                NombreCompleto = nombre,
+                Email = email.Trim(),
+                Password = HashPassword(request.PasswordUsuario!),
+                RolUsuario = request.RolUsuario,
+                fecha_creacion = DateTime.Now
             };
 
-            // Guardar usuario temporalmente (podrías tener un campo "EmailConfirmado" en tu entidad)
             _usuarioRepository.Crear(usuario);
 
-            return new UsuarioReponse("Usuario creado exitosamente. Revisa tu correo para obtener el token de verificación.");
+            LimpiadorCuentasPendientesService.AgregarCuentaPendiente(identificacion, email);
+
+            _emailService.EnviarEmailVerificacionAsync(email, nombre, tokenVerificacion);
+
+            return new UsuarioReponse("Usuario creado exitosamente. Se ha enviado un enlace de verificación al correo (válido por 20 minutos).");
         }
 
         public async Task VerificarEmail(string token)
         {
-            if (!_tokenService.ValidarToken(token, out string email))
+            if (!_tokenService.ValidarTokenVerificacion(token, out string email))
             {
-                throw new BusinessRoleException("Token de verificación inválido o expirado");
+                throw new BusinessRoleException("Enlace de verificación inválido o expirado (más de 20 minutos).");
             }
 
             var usuario = _usuarioRepository.ObtenerPorEmail(email);
@@ -94,24 +123,22 @@ namespace SmartBook.Application.Services
                 throw new BusinessRoleException("Usuario no encontrado");
             }
 
-            // aqui se podria actualizar el campo EmailConfirmado a  en la base de datos
-            // _usuarioRepository.ActualizarEmailConfirmado(usuario.IdUsuario, true);
+            LimpiadorCuentasPendientesService.MarcarComoVerificada(email);
 
-            await _emailService.EnviarEmailConfirmacionCuentaAsync(
-                usuario.Email,
-                usuario.NombreCompleto
-            );
+            _emailService.EnviarEmailConfirmacionCuentaAsync(usuario.Email, usuario.NombreCompleto);
         }
 
         public async Task EnviarTokenRestablecimientoPasswordAsync(string email)
         {
+            email = email.Sanitize().RemoveAccents();
+
             var usuario = _usuarioRepository.ObtenerPorEmail(email);
             if (usuario == null)
-                throw new BusinessRoleException("Usuario no encontrado");
+                return;
 
             var token = _tokenService.GenerarTokenVerificacion(email);
 
-            await _emailService.EnviarEmailRestablecimientoPasswordAsync(
+            _emailService.EnviarEmailRestablecimientoPasswordAsync(
                 usuario.Email,
                 usuario.NombreCompleto,
                 token
@@ -120,92 +147,123 @@ namespace SmartBook.Application.Services
 
         public async Task RestablecerPasswordAsync(string token, string nuevaPassword)
         {
-            if (!_tokenService.ValidarToken(token, out string email))
+            if (!_tokenService.ValidarTokenVerificacion(token, out string email))
                 throw new BusinessRoleException("Token inválido o expirado");
 
             var usuario = _usuarioRepository.ObtenerPorEmail(email);
             if (usuario == null)
                 throw new BusinessRoleException("Usuario no encontrado");
 
-            if (ValidarPassword(nuevaPassword) is false)
-                throw new BusinessRoleException("La contraseña debe tener al menos 8 caracteres");
+            if (!ValidarPassword(nuevaPassword))
+                throw new BusinessRoleException("La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial");
 
-            usuario.Password = encriptarpassword(nuevaPassword);
-            _usuarioRepository.Actualizar(usuario);
 
-            await _emailService.EnviarEmailConfirmacionRestablecimientoAsync(
+            var usuarioActualizado = new Usuario
+            {
+                IdUsuario = usuario.IdUsuario,
+                Identificacion = usuario.Identificacion,
+                NombreCompleto = usuario.NombreCompleto,
+                Email = usuario.Email,
+                Password = HashPassword(nuevaPassword),
+                RolUsuario = usuario.RolUsuario
+            };
+
+            _usuarioRepository.Actualizar(usuarioActualizado);
+
+            _emailService.EnviarEmailConfirmacionRestablecimientoAsync(
                 usuario.Email,
                 usuario.NombreCompleto
             );
         }
 
-        public LoginReponse Login(LoginRequest request)
-        {
-            var passwordHash = encriptarpassword(request.PassWord);
-            var iniciarusuario = _usuarioRepository.IniciarUsuario(request.Email, passwordHash);
-
-            if (iniciarusuario is null)
-                throw new BusinessRoleException("Credenciales inválidas");
-
-
-            var token = generarJWT(iniciarusuario);
-            return new LoginReponse(token);
-        }
-
         public IEnumerable<ConsultarUsuarioReponse> ConsultarUsuario(ConsultarUsuarioRequest request)
         {
-            return _usuarioRepository.ConsultarPorNombre(request.NombreUsuario!, request.RolUsuario);
+            var nombre = request.NombreUsuario?.Sanitize().RemoveAccents();
+            return _usuarioRepository.ConsultarPorNombre(nombre, request.RolUsuario);
         }
 
+        public async Task<UsuarioReponse> Actualizar(string identificacion, ActualizarUsuarioRequest request, string rolActual, string idUsuarioActual)
+        {
+            if (rolActual != RolUsuario.Admin.ToString())
+            {
+                throw new BusinessRoleException("Solo los administradores pueden actualizar usuarios");
+            }
+
+            var usuarioExistente = _usuarioRepository.ObtenerPorIdentificacion(identificacion.Sanitize());
+            if (usuarioExistente == null)
+                throw new BusinessRoleException("Usuario no encontrado");
+
+            if (usuarioExistente.IdUsuario == idUsuarioActual)
+            {
+                throw new BusinessRoleException("No puedes modificar tu propia cuenta");
+            }
+
+            if (!EstaVerificado(usuarioExistente.Email))
+            {
+                throw new BusinessRoleException("No se puede actualizar una cuenta que no ha sido verificada");
+            }
+
+            var nombreFinal = !string.IsNullOrWhiteSpace(request.NombreUsuario)
+               ? request.NombreUsuario.Sanitize().RemoveAccents()
+               : usuarioExistente.NombreCompleto;
+
+            var emailFinal = usuarioExistente.Email;
+            if (!string.IsNullOrWhiteSpace(request.EmailUsuario))
+            {
+                var email = request.EmailUsuario.Sanitize().RemoveAccents();
+                if (!email.EndsWith("@cecar.edu.co"))
+                    throw new BusinessRoleException("Solo se aceptan correos institucionales");
+                emailFinal = email;
+            }
+
+            var usuarioActualizado = new Usuario
+            {
+                IdUsuario = usuarioExistente.IdUsuario.Sanitize().RemoveAccents(),
+                Identificacion = usuarioExistente.Identificacion,
+                Password = usuarioExistente.Password,
+                NombreCompleto = nombreFinal.Sanitize().RemoveAccents(),
+                Email = emailFinal.Sanitize().RemoveAccents(),
+                RolUsuario = request.RolUsuario
+            };
+
+            _usuarioRepository.ActualizarDatos(usuarioActualizado);
+
+            return new UsuarioReponse("Usuario actualizado exitosamente");
+        }
+
+        private bool EstaVerificado(string email)
+        {
+            return LimpiadorCuentasPendientesService.EstaVerificado(email);
+        }
 
         private bool ValidarPassword(string password)
         {
-            if (string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
                 return false;
-            var regex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$");
 
+            var regex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$");
             return regex.IsMatch(password);
         }
 
-        public string encriptarpassword(string texto)
+
+        private string HashPassword(string password)
         {
-            using (SHA256 sha256 = SHA256.Create())
+            return BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
+        }
+
+
+        private bool VerificarPassword(string passwordIngresado, string passwordHasheado)
+        {
+            try
             {
-                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(texto));
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
+                return BCrypt.Net.BCrypt.Verify(passwordIngresado, passwordHasheado);
+            }
+                 catch 
                 {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-                return builder.ToString();
+
+                return false;
+                 }
+                
             }
         }
-
-        public string generarJWT(Usuario modelo)
-        {
-            var userClaims = new[]
-            {
-                new Claim("id", modelo.IdUsuario),
-                new Claim("identificacion", modelo.Identificacion),
-                new Claim("email", modelo.Email),
-                new Claim("rol", modelo.RolUsuario.ToString()),
-                new Claim(ClaimTypes.NameIdentifier, modelo.IdUsuario),
-                new Claim(ClaimTypes.Email, modelo.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            var securitykey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-            var credentials = new SigningCredentials(securitykey, SecurityAlgorithms.HmacSha256Signature);
-
-            var jwtConfig = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: userClaims,
-                expires: DateTime.UtcNow.AddHours(1),
-                signingCredentials: credentials
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(jwtConfig);
-        }
     }
-}

@@ -1,26 +1,32 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace SmartBook.Domain.Entities;
-
 public class Ingreso
 {
     [Required]
     [Key]
-    public string IdIngresos { get; init; }
+    public string? IdIngresos { get; init; }
     [Required]
-    //libroid?
-    public string Lote {  get; init; }
+   
+    public string? Lote { get; init; }
 
     [Required]
-    public int Unidades { get; init; }
+    public int Unidades { get; set; }
     [Required]
-    public double ValorCompra {  get; init; }
+    public double ValorCompra { get; init; }
 
     [Required]
-    public double ValorVenta { get; init; }
-    public DateTime FechaEntrega { get; init; }
+    public double ValorVenta { get; set; }
     [Required]
-    // un ingreso pertenece a un libro?
-    public Libro libro { get; init; }
+    public DateOnly Fecha { get; init; }
+    [Required]
+    
+    public string? libro { get; set; }
 
 }
+

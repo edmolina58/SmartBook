@@ -2,9 +2,7 @@
 
 public record ConsultarClienteRequest
 (
-    //necesario que sea obligatorio??
-    string IdentificacionCliente,
-    string? NombreCliente
+    string IdentificacionCliente
     
     
     );

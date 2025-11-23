@@ -13,6 +13,8 @@ public record ConsultarClienteReponse
     string nombreCompleto,
     string email,
     string celular,
-    DateOnly fechanacimiento
-    
+    DateOnly fechanacimiento,
+    DateTime fecha_creacion,
+    DateTime? fecha_actualizacion
+
     );

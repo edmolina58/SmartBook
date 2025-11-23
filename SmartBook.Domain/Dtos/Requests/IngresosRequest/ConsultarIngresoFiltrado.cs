@@ -5,14 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SmartBook.Domain.Dtos.Requests.IngresosRequest;
-public record CrearIngresoRequest
-        (
-
-         string libros,
-         int Unidades,
-         double ValorCompra,
-         double ValoVenta
-
-
-        );
-
+public record ConsultarIngresoFiltrado
+(
+    DateOnly Desde,
+    DateOnly Hasta
+   
+    );

@@ -9,6 +9,9 @@ namespace SmartBook.Domain.Dtos.Reponses.UsuariosReponses;
 public record ConsultarUsuarioReponse
 (
     string NombrCompleto,
-    RolUsuario RolUsuario
+    RolUsuario RolUsuario,
+    DateTime fecha_creacion,
+
+    DateTime? fecha_actualizacion
 
     );

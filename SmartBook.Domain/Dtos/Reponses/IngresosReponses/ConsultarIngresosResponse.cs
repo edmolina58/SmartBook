@@ -4,14 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SmartBook.Domain.Dtos.Reponses.IngresosReponse;
-public record IngresosReponse
+namespace SmartBook.Domain.Dtos.Reponses.IngresosReponses;
+public record ConsultarIngresosResponse
 (
     string IdIngresos,
-    string LibroId,
-    string LibroNombre,
     string Lote,
+    string libro,
+    int Unidades,
     double ValorCompra,
-    DateTime FechaEntrega,
-    DateTime FechaCreacion 
+    double ValorVenta,
+    DateOnly Fecha
+
+
     );
+

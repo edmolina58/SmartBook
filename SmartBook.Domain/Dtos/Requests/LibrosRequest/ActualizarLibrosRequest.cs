@@ -8,5 +8,9 @@ public record ActualizarLibrosRequest
     string Nivel,
     TipoLibro TipoLibro,
     string Editorial,
-    string Edicion
+    string Edicion,
+    DateTime fecha_creacion ,
+    
+    DateTime? fecha_actualizacion 
+
     );

@@ -8,10 +8,14 @@ namespace SmartBook.Persistence.Repositories.Interface
     {
         bool ValidarCreacionUsuario(string identificacion);
         void Crear(Usuario usuario);
-        void Actualizar(Usuario usuario);
         Usuario IniciarUsuario(string email, string passwordHash);
         Usuario ObtenerPorEmail(string email);
+        Usuario ObtenerPorIdentificacion(string identificacion);
+        void Actualizar(Usuario usuario);
+        void ActualizarDatos(Usuario usuario);
+
+        public bool BorrarNoVerificado(string id);
         IEnumerable<ConsultarUsuarioReponse> ConsultarPorNombre(string nombreCompleto, RolUsuario? rolUsuario);
-        bool Borrar(string id);
+
     }
 }

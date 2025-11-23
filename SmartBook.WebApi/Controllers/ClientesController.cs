@@ -1,91 +1,123 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartBook.Application.Services.Interface;
 using SmartBook.Domain.Dtos.Requests.ClienteRequest;
 using SmartBook.Domain.Dtos.Requests.ClientesRequest;
 using SmartBook.Domain.Exceptions;
 
-namespace SmartBook.WebApi.Controllers;
-[Route("api/[controller]")]
-[ApiController]
-public class ClientesController : ControllerBase
+namespace SmartBook.WebApi.Controllers
 {
-    private readonly IClienteService _clienteService;
-
-    public ClientesController(IClienteService clienteService)
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize] 
+    public class ClientesController : ControllerBase
     {
-        _clienteService = clienteService;
+        private readonly IClienteService _clienteService;
 
-    }
-
-    [HttpPost]
-    public ActionResult Crear(CrearClienteRequest request)
-    {
-        try
+        public ClientesController(IClienteService clienteService)
         {
+            _clienteService = clienteService;
+        }
 
 
-            var cliente = _clienteService.Crear(request);
-
-            if (cliente is null)
+        [HttpPost]
+        [Authorize(Roles = "Admin,Vendedor")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        public ActionResult Crear(CrearClienteRequest request)
+        {
+            try
             {
-                return BadRequest();
+                var cliente = _clienteService.Crear(request);
+
+                if (cliente is null)
+                {
+                    return BadRequest(new { mensaje = "No se pudo crear el cliente" });
+                }
+
+                return Created(string.Empty, cliente);
             }
-            return Created(string.Empty, cliente);
+            catch (BusinessRoleException exb)
+            {
+                return UnprocessableEntity(new { mensaje = exb.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { mensaje = "Ocurrió un error al procesar la solicitud" });
+            }
         }
-        catch (BusinessRoleException exb)
+
+        [HttpGet("{identificacion}")]
+        [Authorize(Roles = "Admin,Vendedor")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult Consultar(string identificacion)
         {
-            return UnprocessableEntity(exb.Message);
+            try
+            {
+                var cliente = _clienteService.Consultar(identificacion);
+
+                if (cliente is null)
+                {
+                    return NotFound(new { mensaje = "Cliente no encontrado" });
+                }
+
+                return Ok(cliente);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { mensaje = "Ocurrió un error al procesar la solicitud" });
+            }
         }
-        catch (Exception exg)
+
+        [HttpGet]
+        [Authorize(Roles = "Admin,Vendedor")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult Consultar([FromQuery] ConsultarClienteFiltradoNombreRequest request)
         {
-
-            return StatusCode(StatusCodes.Status500InternalServerError, exg.Message);
+            try
+            {
+                var clientes = _clienteService.ConsultarPorIdentificacion(request);
+                return Ok(clientes);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { mensaje = "Ocurrió un error al procesar la solicitud" });
+            }
         }
-    }
 
-    [HttpDelete("{id}")]
-    public ActionResult Borrar(string id)
-    {
-        var borrado = _clienteService.Borrar(id);
-        if (!borrado)
+       
+        [HttpPut("{identificacion}")]
+        [Authorize(Roles = "Admin,Vendedor")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult Actualizar(string identificacion, ActualizarClienteRequest request)
         {
-            return NotFound();
+            try
+            {
+                var actualizado = _clienteService.Actualizar(identificacion, request);
+
+                if (!actualizado)
+                {
+                    return NotFound(new { mensaje = "Cliente no encontrado" });
+                }
+
+                return NoContent();
+            }
+            catch (BusinessRoleException exb)
+            {
+                return BadRequest(new { mensaje = exb.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { mensaje = "Ocurrió un error al procesar la solicitud" });
+            }
         }
-        return NoContent();
-    }
 
 
-    [HttpGet("{id}")]
-    public ActionResult Consultar(string id)
-    {
-        var cliente = _clienteService.Consultar(id);
-        if (cliente is null)
-        {
-            return NotFound();
-        }
-        return Ok(cliente);
-    }
-
-    [HttpGet]
-    public ActionResult Consultar([FromQuery] ConsultarClienteFiltradoNombreRequest request)
-    {
-
-        var cliente = _clienteService.ConsultarPorIdentificacion(request);
-        return Ok(cliente);
-    }
-
-    [HttpPut("{id}")]
-    public ActionResult Actualizar(string id, ActualizarClienteRequest request)
-    {
-        var libro = _clienteService.Actualizar(id, request);
-
-        if (!libro)
-        {
-
-            return NotFound();
-        }
-        return NoContent();
     }
 }
-

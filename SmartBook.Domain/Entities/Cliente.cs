@@ -2,7 +2,7 @@
 
 namespace SmartBook.Domain.Entities;
 
-// entidades y enums a la logica de negocio
+
 public class Cliente
 {
 
@@ -26,42 +26,10 @@ public class Cliente
     [Required]
     public DateOnly FechaNacimiento { get; init; }
 
-    // un cliente puede tener muchas ventas
-    public ICollection<Venta> Ventas { get; init; }
+    [Required]
+    public DateTime fecha_creacion { get; init; }
+    [Required]
+    public DateTime fecha_actualizacion { get; set; }
+    
 
- 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// 
-// COMPRA -> INGRESO -> Aumenta INVENTARIO
-                      //    ↓
-// VENTA → VENTA_DETALLE → Disminuye INVENTARIO
-                        //  ↓
-// CLIENTE recibe comprobante + USUARIO registra la venta
-
-
-
-
-
-
-
-
-
-
-
-

@@ -21,7 +21,10 @@ public class Libro
     [Required]
     public string Editorial { get; init; }
 
-
+    [Required]
+    public DateTime fecha_creacion { get; init; }
+    [Required]
+    public DateTime fecha_actualizacion { get; set; }
     [Required]
     public string Edicion { get; init; }
 

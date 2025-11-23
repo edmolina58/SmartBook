@@ -2,7 +2,8 @@
 
 public enum RolUsuario
 {
-Admin=0,
-Vendedor=1
+Admin=1,
+Vendedor=2,
+Suspendida=3
 }
 

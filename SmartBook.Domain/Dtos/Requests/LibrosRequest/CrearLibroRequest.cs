@@ -6,11 +6,8 @@ public record CrearLibroRequest
 (
     string Nombre,
     string Nivel,
-    int stock, //aqui?
+    int stock, 
     TipoLibro TipoLibro,
     string Editorial,
     string Edicion
-    
-    
-    
     );

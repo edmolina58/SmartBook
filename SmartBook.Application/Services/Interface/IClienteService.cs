@@ -13,7 +13,6 @@ public interface IClienteService
 {
 
      ClienteReponse? Crear(CrearClienteRequest request);
-     bool Borrar(string id);
      bool Actualizar(string id, ActualizarClienteRequest request);
 
      ConsultarClienteReponse Consultar(string id);

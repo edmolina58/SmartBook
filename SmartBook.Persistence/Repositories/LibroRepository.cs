@@ -15,7 +15,7 @@ public class LibroRepository : ILibroRepository
     public LibroRepository(IConfiguration configuration)
     {
         _configuration = configuration;
-        _connectionString = _configuration.GetConnectionString("smarkbook");
+        _connectionString = _configuration.GetConnectionString("smarkbook")!;
 
     }
 
@@ -56,7 +56,7 @@ public class LibroRepository : ILibroRepository
 
                   VALUES (@IdLibro, @Nombre, @Nivel, @TipoLibro, @Editorial, @Edicion,@Stock, @FechaCreacion;
 
-                        update detalle_venta set unidades=detalle_venta.unidades+@Stock";
+                        update detalle_venta set unidades=detalle_venta.unidades+@Stock, set fecha_actualizacion=@fecha_actualizacion";
 
         using var command = new MySqlCommand(query, connection);
         command.Parameters.AddWithValue("@IdLibro", Libro);
@@ -66,6 +66,7 @@ public class LibroRepository : ILibroRepository
         command.Parameters.AddWithValue("@Editorial", Libro.Editorial);
         command.Parameters.AddWithValue("@Edicion", Libro.Edicion);
         command.Parameters.AddWithValue("@Stock", Libro.Stock);
+        command.Parameters.AddWithValue("@FechaCreacion", DateTime.Now);
 
         command.ExecuteNonQuery();
     }
@@ -88,7 +89,7 @@ public class LibroRepository : ILibroRepository
         using var connection = new MySqlConnection(_connectionString);
         connection.Open();
 
-        var query = "SELECT id_libro, nombre,nivel,stock,tipo,editorial,edicion FROM Libros WHERE id_libro = @IdLibro";
+        var query = "SELECT id_libro, nombre,nivel,stock,tipo,editorial,edicion,fecha_creacion,fecha_actualizacion FROM Libros WHERE id_libro = @IdLibro";
 
         using var command = new MySqlCommand(query, connection);
         command.Parameters.AddWithValue("@IdLibro", id);
@@ -101,15 +102,19 @@ public class LibroRepository : ILibroRepository
         var tipo = (TipoLibro)Convert.ToInt32(reader["tipo"]);
         var editorial = reader["editorial"].ToString();
         var edicion = reader["edicion"].ToString();
+        var fecha_creacion = Convert.ToDateTime(reader["fecha_creacion"]);
+        var fecha_actualizacion = Convert.ToDateTime(reader["fecha_actualizacion"]);
         command.ExecuteNonQuery();
         return new ConsultarLibroReponse(
                        id,
-                       nombre,
-                       nivel,
+                       nombre!,
+                       nivel!,
                        tipo,
                        stock,
-                      editorial,
-                      edicion
+                      editorial!,
+                      edicion!,
+                      fecha_creacion,
+                      fecha_actualizacion
        );
 
 
@@ -124,7 +129,7 @@ public class LibroRepository : ILibroRepository
         connection.Open();
 
         var query = @"
-        SELECT id_libro, nombre, nivel, stock, tipo, editorial, edicion
+        SELECT id_libro, nombre, nivel, stock, tipo, editorial, edicion, fecha_creacion, fecha_actualizacion
         FROM libros
         WHERE (@nombre IS NULL OR nombre LIKE CONCAT('%', @nombre, '%'))
           AND (@nivel IS NULL OR nivel LIKE CONCAT('%', @nivel, '%'))
@@ -137,19 +142,20 @@ public class LibroRepository : ILibroRepository
         command.Parameters.AddWithValue("@nivel", string.IsNullOrEmpty(nivel) ? DBNull.Value : nivel);
         command.Parameters.AddWithValue("@tipoLibro", tipoLibro == null ? DBNull.Value : tipoLibro.ToString());
         command.Parameters.AddWithValue("@edicion", string.IsNullOrEmpty(edicion) ? DBNull.Value : edicion);
-
         using var reader = command.ExecuteReader();
 
         while (reader.Read())
         {
             var libro = new ConsultarLibroReponse(
-                id: reader["id_libro"].ToString(),
-                nombre: reader["nombre"].ToString(),
-                nivel = reader["nivel"].ToString(),
+                id: reader["id_libro"].ToString()!,
+                nombre: reader["nombre"].ToString()!,
+                nivel = reader["nivel"].ToString()!,
                 tipoLibro = Enum.TryParse(reader["tipo"].ToString(), out TipoLibro tipo) ? tipo : TipoLibro.StudensBoook,
                 stock: Convert.ToInt32(reader["stock"]),
-                editorial: reader["editorial"].ToString(),
-                edicion: reader["edicion"].ToString()
+                editorial: reader["editorial"].ToString()!,
+                edicion: reader["edicion"].ToString()!,
+                fecha_creacion: Convert.ToDateTime(reader["fecha_creacion"]),
+                fecha_actualizacion: Convert.ToDateTime(reader["fecha_actualizacion"])
             );
 
             resultados.Add(libro);
@@ -166,7 +172,7 @@ public class LibroRepository : ILibroRepository
         var query = @"UPDATE Libros
                         SET 
                         nombre = @Nombre, nivel = @Nivel, tipo = @TipoLibro, editorial = @Editorial,
-                        edicion = @edicion, stock = Libros.stock WHERE id_Libro = @IdLibro";
+                        edicion = @edicion, stock = Libros.stock, fecha_actualizacion = @fecha_actualizacion WHERE id_Libro = @IdLibro";
 
         using var command = new MySqlCommand(query, connection);
         command.Parameters.AddWithValue("@IdLibro", IdLibro);
@@ -175,6 +181,8 @@ public class LibroRepository : ILibroRepository
         command.Parameters.AddWithValue("@TipoLibro", Libro.TipoLibro);
         command.Parameters.AddWithValue("@Editorial", Libro.Editorial);
         command.Parameters.AddWithValue("@edicion", Libro.Edicion);
+        command.Parameters.AddWithValue("@fecha_actualizacion", Libro.fecha_actualizacion);
+        
 
         return command.ExecuteNonQuery() > 0;
     }

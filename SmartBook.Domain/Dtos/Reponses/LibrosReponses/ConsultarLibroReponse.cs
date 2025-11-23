@@ -7,13 +7,15 @@ using System.Threading.Tasks;
 
 namespace SmartBook.Domain.Dtos.Reponses.LibrosReponse;
 public record ConsultarLibroReponse
-(   string? id,
-    string? nombre,
-    string? nive,
+(   string id,
+    string nombre,
+    string nive,
     TipoLibro tipolibro,
-    int? stock,
-    string? editorial,
-    string? edicion
-    
-    
+    int stock,
+    string editorial,
+    string edicion,
+    DateTime fecha_creacion,
+    DateTime? fecha_actualizacion
+
+
     );

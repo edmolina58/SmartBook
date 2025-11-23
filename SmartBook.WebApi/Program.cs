@@ -1,8 +1,9 @@
-﻿
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using SmartBook.Application.Services;
 using SmartBook.Application.Services.Interface;
+using SmartBook.Application.Services.Validation;
 using SmartBook.Domain.Entities;
 using SmartBook.Persistence.Repositories;
 using SmartBook.Persistence.Repositories.Interface;
@@ -10,82 +11,129 @@ using SmartBook.Services;
 using SmartBook.WebApi.Services;
 using System.Text;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddMemoryCache();
 
-            //  Repositorios
-            builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
-            builder.Services.AddScoped<ILibroRepository, LibroRepository>();
-            builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-            builder.Services.AddScoped<IVentaRepository, VentaRepository>();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "SmartBook API - CDI CECAR",
+        Version = "v1",
+        Description = "API REST para la gestión de inventario del Centro de Idiomas CECAR"
+    });
 
-            // Servicios de Aplicación
-            builder.Services.AddScoped<IClienteService, ClienteService>();
-            builder.Services.AddScoped<ILibroService, LibroService>();
-            builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-            builder.Services.AddScoped<IVentaService, VentaService>();
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = @"Autenticación JWT usando el esquema Bearer.
+                      
+Ingresa tu token JWT en el campo de abajo (sin incluir 'Bearer').
 
-            builder.Services.AddScoped<IEmailService, EmailService>();
-            builder.Services.AddSingleton<ITokenService, TokenService>();
+Ejemplo: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
 
-            //  Email Settings
-            builder.Services.Configure<EmailSettings>(
-                builder.Configuration.GetSection("EmailSettings")
-            );
-
-
-
-
-            builder.Services.AddAuthentication(config =>
-                        {
-
-                            config.DefaultAuthenticateScheme= JwtBearerDefaults.AuthenticationScheme;
-                            config.DefaultChallengeScheme= JwtBearerDefaults.AuthenticationScheme;
-
-                        }).AddJwtBearer(config =>
-                        {
-                            config.RequireHttpsMetadata = false;
-                            config.SaveToken = true;
-                            config.TokenValidationParameters = new TokenValidationParameters
-                            {
-                            ValidateIssuerSigningKey=true,
-                            ValidateIssuer=false,
-                            ValidateAudience=false,
-                            ValidateLifetime=true,
-                            ClockSkew=TimeSpan.Zero,
-
-                            IssuerSigningKey=new SymmetricSecurityKey(
-                                Encoding.UTF8.GetBytes(
-                                    builder.Configuration["Jwt:Key"]!)
-                                )
-                            };
-                        });
-
-
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    {
+        {
+            new OpenApiSecurityScheme
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+builder.Services.AddScoped<ILibroRepository, LibroRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IIngresoRepository, IngresoRepository>();
+
+builder.Services.AddScoped<IIngresoService, IngresoService>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<ILibroService, LibroService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddSingleton<ITokenService, TokenService>();
+builder.Services.AddHostedService<LimpiadorCuentasPendientesService>();
+
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings")
+);
+
+
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ClockSkew = TimeSpan.Zero,
+
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+        )
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+            {
+                context.Response.Headers.Add("Token-Expired", "true");
             }
+            return Task.CompletedTask;
+        }
+    };
+});
 
-            app.UseHttpsRedirection();
-            //autenticacion 
-            app.UseAuthentication();
+builder.Services.AddAuthorization();
 
-            app.UseAuthorization();
+var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "SmartBook API v1");
+        c.DocumentTitle = "SmartBook API - CDI CECAR";
+        c.ConfigObject.PersistAuthorization = true;
+    });
+}
 
-            app.MapControllers();
+app.UseHttpsRedirection();
 
-            app.Run();
-        
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

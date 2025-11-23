@@ -1,11 +1,15 @@
-﻿namespace SmartBook.Domain.Dtos.Requests.IngresosRequest;
-// estos son los 
-// ingresos de los libros
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SmartBook.Domain.Dtos.Requests.IngresosRequest;
 public record ConsultarIngresoRequest
 (
-    DateOnly? FechaDesde,
-    DateOnly? FechaHasta,
-    // esto aqui pueden ir en filtros
-    string Lote,
-    string LibroId
+   DateOnly? Desde,
+   DateOnly? Hasta,
+   string? Lote,
+   string? Libro
 );
+

@@ -7,11 +7,12 @@ namespace SmartBook.Application.Services.Interface
 {
     public interface IUsuarioService
     {
+        LoginReponse Login(LoginRequest request);
+        Task<UsuarioReponse> Crear(CrearUsuarioRequest request, string rolActual, string idUsuarioActual);
+        IEnumerable<ConsultarUsuarioReponse> ConsultarUsuario(ConsultarUsuarioRequest request);
+        Task VerificarEmail(string token);
         Task EnviarTokenRestablecimientoPasswordAsync(string email);
         Task RestablecerPasswordAsync(string token, string nuevaPassword);
-        Task<UsuarioReponse> Crear(CrearUsuarioRequest request);
-        LoginReponse Login(LoginRequest request);
-        Task VerificarEmail(string token);
-        IEnumerable<ConsultarUsuarioReponse> ConsultarUsuario(ConsultarUsuarioRequest request);
+        Task<UsuarioReponse> Actualizar(string identificacion, ActualizarUsuarioRequest request, string rolActual, string idUsuarioActual);
     }
 }

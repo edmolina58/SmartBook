@@ -9,7 +9,6 @@ public interface IClienteRepository
 {
 
     public bool ExisteCliente( string identificacion);
-    public bool Borrar(string id);
 
     public bool Actulizar(string id, ActualizarClienteRequest request);
 

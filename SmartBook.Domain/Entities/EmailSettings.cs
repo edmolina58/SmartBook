@@ -8,4 +8,5 @@ public class EmailSettings
     public bool EnableSsl { get; set; }
     public string User { get; set; }
     public string Password { get; set; }
+    public string BaseUrl { get; set; }
 }

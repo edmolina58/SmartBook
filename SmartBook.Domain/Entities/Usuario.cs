@@ -18,12 +18,14 @@ public class Usuario
    
     [Required]
     [EmailAddress]
-    [RegularExpression(@"@cecar\.edu\.co$",ErrorMessage = "Hubo un problema con el ingreso, intentelo nuevamente")]
     public string Email { get; init; }
 
     [Required]
     public RolUsuario RolUsuario { get; init; }
-    
-
+    [Required]
+    public DateTime fecha_creacion { get; init; }
+    [Required]
+    public DateTime fecha_actualizacion { get; set; }
+    public bool EmailVerificado { get; set; }
 
 }
