@@ -15,7 +15,7 @@ public record ConsultarLibroReponse
     string editorial,
     string edicion,
     DateTime fecha_creacion,
-    DateTime? fecha_actualizacion
+    string fecha_actualizacion
 
 
     );

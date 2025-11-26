@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Org.BouncyCastle.Asn1.Ocsp;
-using SmartBook.Application.Services.Interface;
+using SmartBook.Application.Services.Ingresos.Interfaces;
 using SmartBook.Domain.Dtos.Requests.IngresosRequest;
 using SmartBook.Domain.Exceptions;
-using SmartBook.Services;
-using SmartBook.WebApi.Services;
 
 
 namespace SmartBook.WebApi.Controllers;
@@ -15,7 +13,7 @@ public class IngresosController : ControllerBase
 {
     private readonly IIngresoService _ingresoService;
 
-    public IngresosController(IngresoService ingresoService)
+    public IngresosController(IIngresoService ingresoService)
     {
         _ingresoService = ingresoService;
     }
@@ -76,27 +74,12 @@ public class IngresosController : ControllerBase
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public ActionResult ConsultarPorId(string id)
     {
-
-        try
+        var ingresos = _ingresoService.Consultar(id);
+        if (ingresos is null)
         {
-            var ingreso = _ingresoService.Consultar(id);
-
-            if (ingreso is null)
-            {
-                return NotFound(new { mensaje = "Ingreso no encontrado" });
-            }
-
-            return NoContent();
+            return NotFound(new { mensaje = "No se encontraron libros" });
         }
-        catch (BusinessRoleException exb)
-        {
-            return BadRequest(new { mensaje = exb.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new { mensaje = "Ocurrió un error al procesar la solicitud" });
-        }
+        return Ok(ingresos);
     } }
 
 

@@ -1,13 +1,20 @@
 ﻿
 
 
+using System.ComponentModel.DataAnnotations;
+
 namespace SmartBook.Domain.Dtos.Requests.ClienteRequest;
 
 public record ActualizarClienteRequest
     (
+    [Required]
     string identificacion,
+    [Required]
     string NombreCliente,
+    [EmailAddress]
     string EmailCliente,
+    [Required]
     string CelularCliente,
-    DateOnly FechaNacimientoCliente  
+    [Required]
+    DateOnly FechaNacimientoCliente
     );

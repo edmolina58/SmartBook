@@ -9,8 +9,6 @@ public record ActualizarLibrosRequest
     TipoLibro TipoLibro,
     string Editorial,
     string Edicion,
-    DateTime fecha_creacion ,
-    
-    DateTime? fecha_actualizacion 
+    int stock
 
     );

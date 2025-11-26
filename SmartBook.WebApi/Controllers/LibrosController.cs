@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SmartBook.Application.Services.Interface;
+using SmartBook.Application.Services.Libros.Interfaces;
 using SmartBook.Domain.Dtos.Requests.LibroRequest;
 using SmartBook.Domain.Dtos.Requests.LibrosRequest;
 using SmartBook.Domain.Exceptions;

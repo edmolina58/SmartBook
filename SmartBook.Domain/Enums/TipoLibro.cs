@@ -3,6 +3,6 @@
 public enum TipoLibro
 {
     
-    StudensBoook,
-    Workbook
+    StudensBoook=1,
+    Workbook=2
 }

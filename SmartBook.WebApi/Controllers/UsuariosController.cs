@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SmartBook.Application.Services.Interface;
+using SmartBook.Application.Services.Usuarios.Interfaces;
 using SmartBook.Domain.Dtos.Reponses.UsuariosReponses;
 using SmartBook.Domain.Dtos.Requests.LoginRequest;
 using SmartBook.Domain.Dtos.Requests.UsuarioRequest;
@@ -273,7 +273,7 @@ namespace SmartBook.WebApi.Controllers
             }
         }
 
-        [HttpPost("restablecer-password")]
+        [HttpPatch("restablecer-password")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

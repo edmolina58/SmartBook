@@ -1,5 +1,5 @@
 ﻿using SmartBook.Domain.Dtos.Reponses.UsuariosReponses;
-using SmartBook.Domain.Entities;
+using SmartBook.Domain.Entities.DatabaseEntities;
 using SmartBook.Domain.Enums;
 
 namespace SmartBook.Persistence.Repositories.Interface
@@ -8,14 +8,13 @@ namespace SmartBook.Persistence.Repositories.Interface
     {
         bool ValidarCreacionUsuario(string identificacion);
         void Crear(Usuario usuario);
+        Usuario ObtenerPorIdentificacion(string identificacion);
+        void ActualizarDatos(Usuario usuario);
         Usuario IniciarUsuario(string email, string passwordHash);
         Usuario ObtenerPorEmail(string email);
-        Usuario ObtenerPorIdentificacion(string identificacion);
-        void Actualizar(Usuario usuario);
-        void ActualizarDatos(Usuario usuario);
-
-        public bool BorrarNoVerificado(string id);
+        bool Actualizar(Usuario usuario);
         IEnumerable<ConsultarUsuarioReponse> ConsultarPorNombre(string nombreCompleto, RolUsuario? rolUsuario);
-
+        bool BorrarNoVerificado(string id);
+        bool ExistePorCorreo(string correo);
     }
 }
